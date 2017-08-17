@@ -45,13 +45,13 @@ class Student:
 	def getDict(self):
 		output = {}
 		for param in self.params:
-			output[param.writeKey] = value
+			output[param.writeKey] = param.value
 			output['Username'] = self.getUserName()
 			return output
 
 	def getUserName(self):
 		fname = self.params[1].value
-		lname = self.params[3].value
+		lname = self.params[2].value
 		uname = fname + lname
 		uname = re.sub('\W','',uname)
 		return uname.lower()
@@ -77,6 +77,7 @@ for target in targets:
 			validStudent = Student(student)
 			students[validStudent.getId()] = validStudent
 			keys = validStudent.getKeys()
+			keys.append('Username')
 			print validStudent.getId()
 
 
@@ -85,7 +86,6 @@ with open(output, 'w') as file:
 	studentWriter.writeheader()
 	for student in students.values():
 		print(student.getUserName())
-		#studentData = student.getDict()
-		#studentData["Username"] = student.getUserName()
-		#writer.writerow(studentData)
+		studentData = student.getDict()
+		studentWriter.writerow(studentData)
 		
