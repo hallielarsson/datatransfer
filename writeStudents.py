@@ -14,6 +14,7 @@ class Student:
 	def __init__(self, studentCsv):
 		self.params = [
 			CsvKey('Student ID', 'Student Number', 'State ID'),
+			CsvKey('Username'),
 			CsvKey('First Name'),
 			CsvKey('Last Name'),
 			CsvKey('Middle Name'),
@@ -37,7 +38,7 @@ class Student:
 		for param in self.params:
 			output[param.writeKey] = param.value
 
-		output['Username'] = self.getUserName()
+		#output['Username'] = self.getUserName()
 		output['Email'] = self.getEmail()
 		return output
 

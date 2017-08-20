@@ -11,11 +11,11 @@ class CsvKey:
   def getKey(self):
     return writeKey
 
-  def tryGet(self, data):
-    for key in self.readKeys:
-      if key in data:
-        return data[key]
     return default
 
-  def read(self, sourceDict):
-    self.value = self.tryGet(sourceDict)
+  def read(self, data):
+    for key in self.readKeys:
+      if key in data:
+        val = data[key]
+        if self.value == None or self.value == "":
+          self.value = data[key]
