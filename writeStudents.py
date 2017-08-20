@@ -13,7 +13,7 @@ students = {}
 class Student:
 	def __init__(self, studentCsv):
 		self.params = [
-			CsvKey('Student ID', 'Student Number'),
+			CsvKey('Student ID', 'Student Number', 'State ID'),
 			CsvKey('First Name'),
 			CsvKey('Last Name'),
 			CsvKey('Middle Name'),
@@ -27,14 +27,24 @@ class Student:
 		output = {}
 		for param in self.params:
 			output[param.writeKey] = param.value
-			output['Username'] = self.getUserName()
-			return output
+		output['Username'] = self.getUserName()
+		output['Email'] = self.getEmail()
+		return output
 
 	def getUserName(self):
 		fname = self.params[1].value
 		lname = self.params[2].value
 		uname = fname + lname
 		uname = re.sub('\W','',uname)
+		return uname.lower()
+
+
+	def getEmail(self):
+		fname = self.params[1].value
+		lname = self.params[2].value
+		uname = fname + "." + lname
+		uname = re.sub('\W','',uname)
+		uname += "@baxter-academy.org"
 		return uname.lower()
 
 	def getId(self):
@@ -59,6 +69,7 @@ for target in targets:
 			students[validStudent.getId()] = validStudent
 			keys = validStudent.getKeys()
 			keys.append('Username')
+			keys.append('Email')
 			print validStudent.getId()
 
 
