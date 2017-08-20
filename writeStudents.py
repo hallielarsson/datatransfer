@@ -17,6 +17,14 @@ class Student:
 			CsvKey('First Name'),
 			CsvKey('Last Name'),
 			CsvKey('Middle Name'),
+			CsvKey('Gender'),
+			CsvKey('Birthdate'),
+			CsvKey('Cell Phone'),
+			CsvKey('Address Line 1'),
+			CsvKey('City'),
+			CsvKey('State'),
+			CsvKey('Zip'),
+			CsvKey('Cohort Year', 'Cohort Year NGA')
 		]
 
 		self.data = studentCsv
@@ -25,8 +33,10 @@ class Student:
 
 	def getDict(self):
 		output = {}
+
 		for param in self.params:
 			output[param.writeKey] = param.value
+
 		output['Username'] = self.getUserName()
 		output['Email'] = self.getEmail()
 		return output
@@ -56,6 +66,18 @@ class Student:
 			out.append(param.writeKey)
 		return out
 
+	#assumes same key structure on target
+	def merge(self, target):
+		targetParams = target.params
+		params = self.params
+		targetSize = len(targetParams)
+		assert(targetSize == len(params))
+		for i in range(targetSize):
+			param = params[i]
+			targetParam = targetParams[i]
+			if param.value == "" and targetParam.value != "":
+				param.value = targetParam.value
+
 def validate(student):
 	out = {}
 	return out
@@ -66,7 +88,12 @@ for target in targets:
 		studentReader = csv.DictReader(file)
 		for student in studentReader:
 			validStudent = Student(student)
-			students[validStudent.getId()] = validStudent
+			studentId = validStudent.getId()
+			if studentId in students.keys():
+				students[validStudent.getId()].merge(validStudent)
+			else:
+				students[validStudent.getId()] = validStudent
+	
 			keys = validStudent.getKeys()
 			keys.append('Username')
 			keys.append('Email')
