@@ -6,3 +6,7 @@ todo:
 *.csv#
 
 config.json
+
+csvKey.pyc
+
+*.pyc

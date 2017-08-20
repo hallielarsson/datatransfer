@@ -4,11 +4,16 @@ import re
 
 from csvKey import CsvKey
 
-targets = ["students.csv"]
+targets = ["firststudents.csv", "students.csv"]
 output = "studentsRev.csv"
 delimeter = ","
 students = {}
 
+FIRST_NAME_INDEX = 2
+LAST_NAME_INDEX = 3
+MIDDLE_NAME_INDEX = 4
+
+usedNames = []
 
 class Student:
 	def __init__(self, studentCsv):
@@ -21,11 +26,12 @@ class Student:
 			CsvKey('Gender'),
 			CsvKey('Birthdate'),
 			CsvKey('Cell Phone'),
+			CsvKey('Email'),
 			CsvKey('Address Line 1'),
 			CsvKey('City'),
 			CsvKey('State'),
 			CsvKey('Zip'),
-			CsvKey('Cohort Year', 'Cohort Year NGA')
+			CsvKey('Graduation Year', 'Cohort Year', 'Cohort Year NGA')
 		]
 
 		self.data = studentCsv
@@ -43,16 +49,25 @@ class Student:
 		return output
 
 	def getUserName(self):
-		fname = self.params[1].value
-		lname = self.params[2].value
-		uname = fname + lname
-		uname = re.sub('\W','',uname)
-		return uname.lower()
+		name = ""
+		i = 1
+		print len(name)
+		while name == "" or name in usedNames:
+			fname = self.params[FIRST_NAME_INDEX].value
+			lname = self.params[LAST_NAME_INDEX].value
+			uname = fname[:i] + lname
+			uname = re.sub('\W','',uname)
+			i = i + 1
+			name = uname.lower()
+			print (uname)
+			print name
+		usedNames.append(name)
+		return name
 
 
 	def getEmail(self):
-		fname = self.params[1].value
-		lname = self.params[2].value
+		fname = self.params[FIRST_NAME_INDEX].value
+		lname = self.params[LAST_NAME_INDEX].value
 		uname = fname + "." + lname
 		uname = re.sub('\W','',uname)
 		uname += "@baxter-academy.org"
@@ -84,6 +99,7 @@ def validate(student):
 	return out
 
 keys = []
+noKeys = True
 for target in targets:
 	with open(target, 'rb') as file:
 		studentReader = csv.DictReader(file)
@@ -95,10 +111,10 @@ for target in targets:
 			else:
 				students[validStudent.getId()] = validStudent
 	
-			keys = validStudent.getKeys()
-			keys.append('Username')
-			keys.append('Email')
-			print validStudent.getId()
+			if (noKeys):
+				keys = validStudent.getKeys()
+				keys.append('Email')
+				noKeys = False
 
 
 with open(output, 'w') as file:
