@@ -2,42 +2,73 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
+import csv
+import re
 
 import json
 engine = create_engine('sqlite:///memory:', echo=True)
 Base = declarative_base()
 
-from csvkey import CsvKey
-
 config = None
 with open('config.json') as configFile:
   config = json.load(configFile)
 
-  config = config
-  competencies = []
+competencies = []
+skills = []
+
+levelLut = {
+  "EN" : 1,
+  "PR" : 2,
+  "GB" : 3,
+  "AD" : 4,
+  "EX" : 5 
+}
+
+def IsCompetency(data):
+  return data["Type"] == "Competency Statement"
 
 class SkillImporter:
   config = config
   competencies = competencies
-  def Main(self):
-    targets = self.config.standardFiles
+  def main(self):
+    targets = self.config["standardFiles"]
     for target in targets:
       currentComp = None
       with open(target, 'rb') as file:
         reader = csv.DictReader(file)
-        for skill in reader:
-          if Competency.IsInstance(skill):
+        index = 0
+        lastGrade = 1
+        competencyCode = ""
+        for skillData in reader:
+          if IsCompetency(skillData):
             comp = Competency()
-            comp.ReadDict(skill)
+            comp.ReadDict(skillData)
             competencies.append(comp)
             currentComp = comp
+            index = 1
+            lastGrade = 1
+            competencyCode = re.search('([A-Z]+\.[0-9]+)\.', comp.code).group(1)
+   
           else:
             skill = Skill()
-            skill.ReadDict(skill)
-            skills.append(skill)
+            skill.ReadDict(skillData)
+            skills.append(skillData)
+            gradeInt = levelLut[skill.gradeLevel]
+            if gradeInt > lastGrade:
+              lastGrade = gradeInt
+              print('reset' + str(lastGrade) + skill.gradeLevel)
+              index = 1
+
+            oldCode = skill.code
+            skill.code = ".".join([competencyCode,str(levelLut[skill.gradeLevel]),str(index)])
+            index += 1
+            print(skill.code + " " + oldCode)
             skill.competency = currentComp
 
+print competencies
+
 class StudentCompetency(Base):
+  __tablename__ = "cbl_student_competencies"
   id = Column(Integer, primary_key=True)
   _class = Column('class', String)
   created = Column(DateTime)
@@ -47,6 +78,7 @@ class StudentCompetency(Base):
   enteredVia = Column(String)
 
 class Student(Base):
+  __tablename__ = "cbl_users"
   id = Column(Integer, primary_key=True)
   _class = Column('class', String)
   created = Column(DateTime)
@@ -67,6 +99,7 @@ class Student(Base):
   graduationYear = Column(Integer)
 
 class Competency(Base):
+  __tablename__ = "cbl_competencies"
   id = Column(Integer, primary_key=True)
   _class = Column('class', String)
   created = Column(DateTime)
@@ -78,9 +111,6 @@ class Competency(Base):
   descriptor = Column(String)
   statement = Column(String)
 
-  def IsInstance(dict):
-    return data["Type"] == "Competency"
-
   def ReadDict(self, dict):
     self.code = dict['Code']
     self.descriptor = dict['Descriptor']
@@ -88,6 +118,7 @@ class Competency(Base):
     self._class = "Slate\CBL\StudentCompetency"
 
 class Skill(Base):
+  __tablename__ = "cbl_skills"
   id = Column(Integer, primary_key=True)
   _class = Column('class', String)
   created = Column(DateTime)
@@ -100,16 +131,13 @@ class Skill(Base):
   statement = Column(String)
   evidenceRequirement = Column(String)
 
-  def ReadDict(self, dict):
-    self.code = dict['Code']
-    self.descriptor = dict['Descriptior']
-    self.statement = dict['Statement']
-    self.evidenceRequirement = dict['ER']
+  def ReadDict(self, data):
     self._class = "Slate\CBL\Skill"
-    self.gradeLevel = dict['Grade Level']
+    self.code = data['Code']
+    self.descriptor = data['Descriptor']
+    self.statement = data['Statement']
+    self.evidenceRequirement = data['ER']
+    self.gradeLevel = data['Grade Level']
 
-
-
-Main()
-
-
+importer = SkillImporter()
+importer.main()
