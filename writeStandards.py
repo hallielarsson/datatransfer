@@ -4,10 +4,12 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
 import csv
 import re
+import urllib2
 
 import json
 engine = create_engine('sqlite:///memory:', echo=True)
 Base = declarative_base()
+
 
 config = None
 with open('config.json') as configFile:
@@ -21,51 +23,68 @@ levelLut = {
   "PR" : 2,
   "GB" : 3,
   "AD" : 4,
-  "EX" : 5 
+  "EX" : 5 ,
+  "" : -1
 }
 
 def IsCompetency(data):
+  print(data)
   return data["Type"] == "Competency Statement"
 
 class SkillImporter:
   config = config
   competencies = competencies
-  def main(self):
+  def loadFiles(self):
     targets = self.config["standardFiles"]
     for target in targets:
-      currentComp = None
       with open(target, 'rb') as file:
         reader = csv.DictReader(file)
-        index = 0
+        self.readCsv (reader)
+  def loadUrls(self):
+    targets = self.config["standardsSheets"]
+    baseUrl = self.config["standardsUrl"]
+    for baseId in targets:
+      url = baseUrl + "&gid=" + str(baseId)
+      response = urllib2.urlopen(url)
+      reader = csv.DictReader(response)
+      self.readCsv (reader)
+
+  def readCsv(self, reader):
+    index = 0
+    lastGrade = 1
+    competencyCode = ""
+    for skillData in reader:
+      if IsCompetency(skillData):
+        comp = Competency()
+        comp.ReadDict(skillData)
+        competencies.append(comp)
+        currentComp = comp
+        index = 1
         lastGrade = 1
-        competencyCode = ""
-        for skillData in reader:
-          if IsCompetency(skillData):
-            comp = Competency()
-            comp.ReadDict(skillData)
-            competencies.append(comp)
-            currentComp = comp
-            index = 1
-            lastGrade = 1
-            competencyCode = re.search('([A-Z]+\.[0-9]+)\.', comp.code).group(1)
-   
-          else:
-            skill = Skill()
-            skill.ReadDict(skillData)
-            skills.append(skillData)
-            gradeInt = levelLut[skill.gradeLevel]
-            if gradeInt > lastGrade:
-              lastGrade = gradeInt
-              print('reset' + str(lastGrade) + skill.gradeLevel)
-              index = 1
+        competencySearch = re.search('([A-Z]+\.[0-9]+)\.', comp.code)
+        if competencySearch:
+          competencyCode = competencySearch.group(1)
+        else:
+          competencyCode = "?"
 
-            oldCode = skill.code
-            skill.code = ".".join([competencyCode,str(levelLut[skill.gradeLevel]),str(index)])
-            index += 1
-            print(skill.code + " " + oldCode)
-            skill.competency = currentComp
+      else:
+        skill = Skill()
+        skill.ReadDict(skillData)
+        skills.append(skillData)
+        if skill.gradeLevel.isdigit():
+          gradeInt = int(skill.gradeLevel)
+        else:
+          gradeInt = levelLut[skill.gradeLevel]
+        if gradeInt > lastGrade:
+          lastGrade = gradeInt
+          print('reset' + str(lastGrade) + skill.gradeLevel)
+          index = 1
 
-print competencies
+        oldCode = skill.code
+        skill.code = ".".join([competencyCode,str(gradeInt),str(index)])
+        index += 1
+        print(skill.code + " " + oldCode)
+        skill.competency = currentComp
 
 class StudentCompetency(Base):
   __tablename__ = "cbl_student_competencies"
@@ -140,4 +159,4 @@ class Skill(Base):
     self.gradeLevel = data['Grade Level']
 
 importer = SkillImporter()
-importer.main()
+importer.loadUrls()
