@@ -2,6 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
+import json
+
+config = {}
+with open('config.json') as configFile:
+  config = json.load(configFile)
 
 engine = create_engine('sqlite:///memory:', echo=True)
 Base = declarative_base()
