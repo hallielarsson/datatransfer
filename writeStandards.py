@@ -16,16 +16,29 @@ with open('config.json') as configFile:
 
 url = URL("mysql", username = config['dbUsername'], password = config['dbPassword'],  host = config['dbHost'],
   port = config['dbPort'], database = config['database'])
-print(str(url))
-engine = create_engine(url, echo=True)
+engine = create_engine(url, echo=False)
 Base = declarative_base()
 
-conn= engine.connect()  
+Session = sessionmaker(bind=engine)
 
+def Main():
 
+  conn= engine.connect()  
+  session = Session()
+  compIndex = {}
+  skillIndex = {}
 
-competencies = []
-skills = []
+  oldCompetencies = session.query(Competency)
+  for comp in oldCompetencies:
+    compIndex[str(comp.id)] = comp
+  oldSkills = session.query(Competency)
+  for skill in oldSkills:
+      skillIndex[str(skill.id)] = skill
+  importer = SkillImporter(compIndex, skillIndex)
+  importer.loadUrls()
+
+  print(compIndex)
+
 
 levelLut = {
   "EN" : 1,
@@ -41,7 +54,12 @@ def IsCompetency(data):
 
 class SkillImporter:
   config = config
-  competencies = competencies
+  competencies = []
+  skills = []
+  def __init__(self, compIndex, skillIndex):
+      self.compIndex = compIndex
+      self.skillIndex = skillIndex
+
   def loadFiles(self):
     targets = self.config["standardFiles"]
     for target in targets:
@@ -62,10 +80,18 @@ class SkillImporter:
     lastGrade = 1
     competencyCode = ""
     for skillData in reader:
-      if IsCompetency(skillData):
-        comp = Competency()
+      if IsCompetency(skillData): 
+        if("ID" in skillData.keys()):
+          id = str(skillData["ID"])
+          if(id in self.compIndex.keys()):
+            comp = self.compIndex[id]
+          else:
+            comp = Competency()
+        else:
+          comp = Competency()
+
         comp.readDict(skillData)
-        competencies.append(comp)
+        self.competencies.append(comp)
         currentComp = comp
         index = 1
         lastGrade = 1
@@ -74,11 +100,13 @@ class SkillImporter:
           competencyCode = competencySearch.group(1)
         else:
           competencyCode = "?"
+        if comp.id:
+          print comp.id
 
       else:
         skill = Skill()
         skill.readDict(skillData)
-        skills.append(skillData)
+        self.skills.append(skillData)
         if skill.gradeLevel.isdigit():
           gradeInt = int(skill.gradeLevel)
         else:
@@ -91,7 +119,6 @@ class SkillImporter:
         skill.code = ".".join([competencyCode,str(gradeInt),str(index)])
         index += 1
         skill.competency = currentComp
-        print(skill)
 
 
 class StudentCompetency(Base):
@@ -105,7 +132,7 @@ class StudentCompetency(Base):
   enteredVia = Column(String)
 
 class Student(Base):
-  __tablename__ = "cbl_users"
+  __tablename__ = "people"
   id = Column(Integer, primary_key=True)
   _class = Column('class', String)
   created = Column(DateTime)
@@ -122,7 +149,7 @@ class Student(Base):
   password = Column(String)
   accountLevel = Column(String)
   temporaryPassword = Column(String)
-  studentNumer = Column(Integer)
+  studentNumber = Column(Integer)
   graduationYear = Column(Integer)
 
 class Competency(Base):
@@ -137,6 +164,9 @@ class Competency(Base):
   code = Column(String)
   descriptor = Column(String)
   statement = Column(String)
+
+  def __repr__(self):
+    return self.code + ": " + self.descriptor
 
   def readDict(self, dict):
     self.code = dict['Code']
@@ -156,7 +186,7 @@ class Skill(Base):
   code = Column(String)
   descriptor = Column(String)
   statement = Column(String)
-  evidenceRequirement = Column(String)
+  demonstrationsRequired = Column(String)
 
   def __repr__(self):
     return self.code + ": " + self.descriptor
@@ -166,7 +196,7 @@ class Skill(Base):
     self.code = data['Code']
     self.descriptor = data['Descriptor']
     self.statement = data['Statement']
-    self.evidenceRequirement = data['ER']
+    self.demonstrationsRequired = data['ER']
     self.gradeLevel = data['Grade Level'].upper()
     self.validateDescriptor()
 
@@ -174,5 +204,4 @@ class Skill(Base):
     if not re.match('^(EN)|(PR)|(GB)|(AD)|(EX):.*', self.descriptor):
       self.descriptor = self.gradeLevel + ": " + self.descriptor
 
-importer = SkillImporter()
-importer.loadUrls()
+Main()
