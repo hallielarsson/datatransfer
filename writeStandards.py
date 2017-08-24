@@ -28,7 +28,6 @@ levelLut = {
 }
 
 def IsCompetency(data):
-  print(data)
   return data["Type"] == "Competency Statement"
 
 class SkillImporter:
@@ -56,7 +55,7 @@ class SkillImporter:
     for skillData in reader:
       if IsCompetency(skillData):
         comp = Competency()
-        comp.ReadDict(skillData)
+        comp.readDict(skillData)
         competencies.append(comp)
         currentComp = comp
         index = 1
@@ -69,7 +68,7 @@ class SkillImporter:
 
       else:
         skill = Skill()
-        skill.ReadDict(skillData)
+        skill.readDict(skillData)
         skills.append(skillData)
         if skill.gradeLevel.isdigit():
           gradeInt = int(skill.gradeLevel)
@@ -77,14 +76,14 @@ class SkillImporter:
           gradeInt = levelLut[skill.gradeLevel]
         if gradeInt > lastGrade:
           lastGrade = gradeInt
-          print('reset' + str(lastGrade) + skill.gradeLevel)
           index = 1
 
         oldCode = skill.code
         skill.code = ".".join([competencyCode,str(gradeInt),str(index)])
         index += 1
-        print(skill.code + " " + oldCode)
         skill.competency = currentComp
+        print(skill)
+
 
 class StudentCompetency(Base):
   __tablename__ = "cbl_student_competencies"
@@ -130,7 +129,7 @@ class Competency(Base):
   descriptor = Column(String)
   statement = Column(String)
 
-  def ReadDict(self, dict):
+  def readDict(self, dict):
     self.code = dict['Code']
     self.descriptor = dict['Descriptor']
     self.statement = dict['Statement']
@@ -150,13 +149,21 @@ class Skill(Base):
   statement = Column(String)
   evidenceRequirement = Column(String)
 
-  def ReadDict(self, data):
+  def __repr__(self):
+    return self.code + ": " + self.descriptor
+
+  def readDict(self, data):
     self._class = "Slate\CBL\Skill"
     self.code = data['Code']
     self.descriptor = data['Descriptor']
     self.statement = data['Statement']
     self.evidenceRequirement = data['ER']
-    self.gradeLevel = data['Grade Level']
+    self.gradeLevel = data['Grade Level'].upper()
+    self.validateDescriptor()
+
+  def validateDescriptor(self):
+    if not re.match('^(EN)|(PR)|(GB)|(AD)|(EX):.*', self.descriptor):
+      self.descriptor = self.gradeLevel + ": " + self.descriptor
 
 importer = SkillImporter()
 importer.loadUrls()
