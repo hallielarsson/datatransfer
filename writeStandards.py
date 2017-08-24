@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
@@ -7,13 +8,21 @@ import re
 import urllib2
 
 import json
-engine = create_engine('sqlite:///memory:', echo=True)
-Base = declarative_base()
 
 
 config = None
 with open('config.json') as configFile:
   config = json.load(configFile)
+
+url = URL("mysql", username = config['dbUsername'], password = config['dbPassword'],  host = config['dbHost'],
+  port = config['dbPort'], database = config['database'])
+print(str(url))
+engine = create_engine(url, echo=True)
+Base = declarative_base()
+
+conn= engine.connect()  
+
+
 
 competencies = []
 skills = []
