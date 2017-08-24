@@ -7,37 +7,9 @@ import csv
 import re
 import urllib2
 
+
+from baxterSlate import Skill, Competency
 import json
-
-
-config = None
-with open('config.json') as configFile:
-  config = json.load(configFile)
-
-url = URL("mysql", username = config['dbUsername'], password = config['dbPassword'],  host = config['dbHost'],
-  port = config['dbPort'], database = config['database'])
-engine = create_engine(url, echo=False)
-Base = declarative_base()
-
-Session = sessionmaker(bind=engine)
-
-def Main():
-
-  conn= engine.connect()  
-  session = Session()
-  compIndex = {}
-  skillIndex = {}
-
-  oldCompetencies = session.query(Competency)
-  for comp in oldCompetencies:
-    compIndex[str(comp.id)] = comp
-  oldSkills = session.query(Competency)
-  for skill in oldSkills:
-      skillIndex[str(skill.id)] = skill
-  importer = SkillImporter(compIndex, skillIndex)
-  importer.loadUrls()
-
-  print(compIndex)
 
 
 levelLut = {
@@ -49,16 +21,74 @@ levelLut = {
   "" : -1
 }
 
+
+legacyLevelLut = {
+  "EN" : 9,
+  "PR" : 10,
+  "GB" : 11,
+  "AD" : 12,
+  "EX" : 13,
+  "BA" : 1,  
+  "" : -1
+}
+config = None
+with open('config.json') as configFile:
+  config = json.load(configFile)
+
 def IsCompetency(data):
   return data["Type"] == "Competency Statement"
+
+
+def Main():
+
+  url = URL("mysql", username = config['dbUsername'], password = config['dbPassword'],  host = config['dbHost'],
+    port = config['dbPort'], database = config['database'])
+  engine = create_engine(url, echo=False)
+  Base = declarative_base()
+  Session = sessionmaker(bind=engine, autoflush=False, autocommit = False)
+
+  conn= engine.connect()  
+  session = Session()
+  compIndex = {}
+  skillIndex = {}
+  compsByCode = {}
+  skillsByCode = {}
+
+  try:
+    oldCompetencies = session.query(Competency)
+    for comp in oldCompetencies:
+      compIndex[str(comp.id)] = comp
+      compsByCode[comp.code] = comp
+    oldSkills = session.query(Competency)
+    for skill in oldSkills:
+        skillIndex[str(skill.id)] = skill
+        skillsByCode[skill.code] = skill
+    importer = SkillImporter(compIndex, skillIndex, compsByCode, skillsByCode, session)
+    importer.loadUrls()
+  except RuntimeError as e:
+    print e
+    session.rollback()
+    session.flush()
+
+
+
+  session.rollback()
+  session.flush()
+  session.close()
+
+
+
 
 class SkillImporter:
   config = config
   competencies = []
   skills = []
-  def __init__(self, compIndex, skillIndex):
+  def __init__(self, compIndex, skillIndex, compsByCode, skillsByCode, session):
       self.compIndex = compIndex
       self.skillIndex = skillIndex
+      self.session = session
+      self.compsByCode = compsByCode
+      self.skillsByCode = skillsByCode
 
   def loadFiles(self):
     targets = self.config["standardFiles"]
@@ -69,42 +99,45 @@ class SkillImporter:
   def loadUrls(self):
     targets = self.config["standardsSheets"]
     baseUrl = self.config["standardsUrl"]
-    for baseId in targets:
-      url = baseUrl + "&gid=" + str(baseId)
+    for data in targets:
+      url = baseUrl + "&gid=" + str(data['sheet'])
       response = urllib2.urlopen(url)
       reader = csv.DictReader(response)
-      self.readCsv (reader)
+      self.readCsv (reader, data['domain'])
 
-  def readCsv(self, reader):
+  def readCsv(self, reader, domainId):
     index = 0
     lastGrade = 1
     competencyCode = ""
+    currentComp = None
     for skillData in reader:
       if IsCompetency(skillData): 
-        if("ID" in skillData.keys()):
-          id = str(skillData["ID"])
-          if(id in self.compIndex.keys()):
-            comp = self.compIndex[id]
+        id = str(skillData["ID"])
+        if(id in self.compIndex.keys()):
+          comp = self.compIndex[id]
+        else:
+          code = skillData["Code"]
+          if(code in self.compsByCode.keys()): 
+            comp = self.compsByCode[code]
           else:
             comp = Competency()
-        else:
-          comp = Competency()
+            comp.creatorID = 1
 
         comp.readDict(skillData)
+        if comp.contentAreaID == None:
+          comp.contentAreaID = domainId
+        else:
+          print (comp.contentAreaID)
         self.competencies.append(comp)
         currentComp = comp
+        self.session.add(comp)
+        self.session.flush()
         index = 1
         lastGrade = 1
-        competencySearch = re.search('([A-Z]+\.[0-9]+)\.', comp.code)
-        if competencySearch:
-          competencyCode = competencySearch.group(1)
-        else:
-          competencyCode = "?"
-        if comp.id:
-          print comp.id
 
       else:
         skill = Skill()
+        skill.creatorID = 1
         skill.readDict(skillData)
         self.skills.append(skillData)
         if skill.gradeLevel.isdigit():
@@ -116,92 +149,11 @@ class SkillImporter:
           index = 1
 
         oldCode = skill.code
-        skill.code = ".".join([competencyCode,str(gradeInt),str(index)])
+        skill.code = '.'.join([currentComp.getCodeRoot(),str(gradeInt),str(index)])
         index += 1
         skill.competency = currentComp
-
-
-class StudentCompetency(Base):
-  __tablename__ = "cbl_student_competencies"
-  id = Column(Integer, primary_key=True)
-  _class = Column('class', String)
-  created = Column(DateTime)
-  creatorID = Column(Integer)
-  studentID = Column(Integer)
-  level = Column(Integer)
-  enteredVia = Column(String)
-
-class Student(Base):
-  __tablename__ = "people"
-  id = Column(Integer, primary_key=True)
-  _class = Column('class', String)
-  created = Column(DateTime)
-  creatorID = Column(Integer)
-  modified = Column(DateTime)
-  modifierID = Column(Integer)
-  firstName = Column(String)
-  lastName = Column(String)
-  middleName = Column(String)
-  preferredName = Column(String)
-  gender = Column(String)
-  birthdate = Column(DateTime)
-  username = Column(String)
-  password = Column(String)
-  accountLevel = Column(String)
-  temporaryPassword = Column(String)
-  studentNumber = Column(Integer)
-  graduationYear = Column(Integer)
-
-class Competency(Base):
-  __tablename__ = "cbl_competencies"
-  id = Column(Integer, primary_key=True)
-  _class = Column('class', String)
-  created = Column(DateTime)
-  creatorID = Column(Integer)
-  modified = Column(DateTime)
-  modifierID = Column(Integer)
-  contentAreaID = Column(Integer)
-  code = Column(String)
-  descriptor = Column(String)
-  statement = Column(String)
-
-  def __repr__(self):
-    return self.code + ": " + self.descriptor
-
-  def readDict(self, dict):
-    self.code = dict['Code']
-    self.descriptor = dict['Descriptor']
-    self.statement = dict['Statement']
-    self._class = "Slate\CBL\StudentCompetency"
-
-class Skill(Base):
-  __tablename__ = "cbl_skills"
-  id = Column(Integer, primary_key=True)
-  _class = Column('class', String)
-  created = Column(DateTime)
-  creatorID = Column(Integer)
-  modified = Column(DateTime)
-  modifierID = Column(Integer)
-  competencyID = Column(Integer)
-  code = Column(String)
-  descriptor = Column(String)
-  statement = Column(String)
-  demonstrationsRequired = Column(String)
-
-  def __repr__(self):
-    return self.code + ": " + self.descriptor
-
-  def readDict(self, data):
-    self._class = "Slate\CBL\Skill"
-    self.code = data['Code']
-    self.descriptor = data['Descriptor']
-    self.statement = data['Statement']
-    self.demonstrationsRequired = data['ER']
-    self.gradeLevel = data['Grade Level'].upper()
-    self.validateDescriptor()
-
-  def validateDescriptor(self):
-    if not re.match('^(EN)|(PR)|(GB)|(AD)|(EX):.*', self.descriptor):
-      self.descriptor = self.gradeLevel + ": " + self.descriptor
+        skill.competencyID = currentComp.id
+        print(skill)
+        print(skill.competencyID)
 
 Main()
