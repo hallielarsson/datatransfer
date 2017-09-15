@@ -5,11 +5,13 @@ import re
 Base = declarative_base()
 
 levelLut = {
+  "NE" : 0,
   "EN" : 1,
   "PR" : 2,
   "GB" : 3,
   "AD" : 4,
   "EX" : 5 ,
+  "BA" : 6 ,
   "" : -1
 }
 
@@ -38,6 +40,16 @@ class StudentCompetency(Base):
   level = Column(Integer)
   enteredVia = Column(String)
 
+
+  def readDict(self, data):
+    self._class = 'Slate\CBL\StudentCompetency'
+    self.creatorID = 1
+    self.studentID = self.getId(data["StudentNumber"])
+    self.competencyID = data["CompetencyID"]
+    self.level = levelLut[int(data["level"])]
+    self.enteredVia = "enrollment"
+
+
 class Student(Base):
   __tablename__ = "people"
   id = Column(Integer, primary_key=True)
@@ -59,6 +71,9 @@ class Student(Base):
   studentNumber = Column(Integer)
   graduationYear = Column(Integer)
 
+  def __repr__(self):
+    return self.code + ": " + self.lastName + ", " + self.firstName
+
 class Competency(Base):
   __tablename__ = "cbl_competencies"
   id = Column(Integer, primary_key=True)
@@ -76,18 +91,18 @@ class Competency(Base):
     return self.code + ": " + self.descriptor
 
   def getCodeRoot(self):
-    competencySearch = re.search('([A-Z]+\.[0-9]+)\.', self.code)
+    competencySearch = re.search('([A-Za-z]+\.[0-9]+)\.', self.code)
     if competencySearch:
       return competencySearch.group(1)
     else:
-      return "?"
-
+      return "BAD_CODE"
 
   def readDict(self, dict):
-    self.code = dict['Code']
+    self.code = dict['Code'].upper()
     self.descriptor = dict['Descriptor']
     self.statement = dict['Statement']
     self._class = 'Slate\CBL\Competency'
+    self.icName = dict['Baxter Standard']
 
 class Skill(Base):
   __tablename__ = "cbl_skills"
@@ -108,15 +123,41 @@ class Skill(Base):
 
   def readDict(self, data):
     self._class = 'Slate\CBL\Skill'
-    self.code = data['Code']
+    self.code = data['Code'].upper()
     self.creatorID = 1
     self.descriptor = data['Descriptor']
     self.statement = data['Statement']
-    self.demonstrationsRequired = data['ER']
-    self.gradeLevel = data['Grade Level'].upper()
+    self.demonstrationsRequired = 3 #"data['ER'].upper()
+    #self.gradeLevel = data['Grade Level'].upper()
+
+    #print(self.gradeLevel)
+    self.demonstrationsRequired = '{""default" : "3" }'
     self.validateDescriptor()
 
   def validateDescriptor(self):
     if not re.match('^(EN)|(PR)|(GB)|(AD)|(EX):.*', self.descriptor):
-      self.descriptor = self.gradeLevel + ": " + self.descriptor
+      self.descriptor = self.descriptor
 
+class Demonstration(Base):
+  __tablename__ = "cbl_demonstrations"
+  id = Column(Integer, primary_key=True)
+  def readDict(self, data):
+    self._class = 'Slate\CBL\Demonstration'
+    self.creatorID = 1
+
+class DemonstrationSkill(Base):
+  __tablename__ = "cbl_demonstration_skills"
+  id = Column(Integer, primary_key=True)
+  created = Column(DateTime)
+  creatorID = Column(Integer)
+  demonstrationID = Column(Integer)
+  skillID = Column(Integer)
+  targetLevel = Column(Integer)
+  demonstratedLevel = Column(Integer)
+
+  def __repr__(self):
+    return str(self.id) + " : " + str(self.targetLevel) + " : " + str(self.demonstratedLevel)
+
+  def readDict(self, data):
+    self._class = 'Slate\CBL\Demonstrations\DemonstrationSkill'
+    self.creatorID = 1
