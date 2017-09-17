@@ -22,7 +22,7 @@ legacyLevelLut = {
   "GB" : 11,
   "AD" : 12,
   "EX" : 13,
-  "BA" : 1,  
+  "BA" : 14,  
   "" : -1
 }
 
@@ -131,7 +131,7 @@ class Skill(Base):
     #self.gradeLevel = data['Grade Level'].upper()
 
     #print(self.gradeLevel)
-    self.demonstrationsRequired = '{""default" : "3" }'
+    self.demonstrationsRequired = '{"default" : "3" }'
     self.validateDescriptor()
 
   def validateDescriptor(self):
@@ -142,7 +142,7 @@ class Demonstration(Base):
   __tablename__ = "cbl_demonstrations"
   id = Column(Integer, primary_key=True)
   def readDict(self, data):
-    self._class = 'Slate\CBL\Demonstration'
+    self._class = 'Slate\CBL\Demonstrations\ExperienceDemonstration'
     self.creatorID = 1
 
 class DemonstrationSkill(Base):

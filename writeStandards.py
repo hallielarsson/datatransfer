@@ -8,7 +8,7 @@ import re
 import urllib2
 
 
-from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency
+from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration
 import json
 
 levelLut = {
@@ -43,18 +43,56 @@ def Main():
   conn= engine.connect()
   trans = conn.begin()
   session = Session(bind=conn,autoflush=False, autocommit = False)
+  studentsByID = {}
+
+  students = session.query(Student)
+  for student in students:
+    studentsByID[student.studentNumber] = student
+
+
+  readDemos(session, studentsByID)
   #SyncStandards(session)
 
-  ShiftDemos(session)
+  #ShiftDemos(session)
+
+unfound = {}
+def readDemos(session, studentsByID):
+    #studentDemos = session.query(Demonstration)
+    targets = ['data/StudentStandards1617.csv']
+    for target in targets:
+      with open(target, 'rb') as file:
+        reader = csv.DictReader(file)
+        for entry in reader:
+          readDemo(entry, studentsByID)
+    for data in unfound:
+      print ",".join(unfound[data]) # + " : " + data["First Name"] + " " + data["Last Name"]
 
 
+
+def readDemo(info, studentsByID):
+  id = info["State ID"]
+  if id in studentsByID.keys():
+    student = studentsByID[id]
+  else:
+    if not id in unfound.keys():
+      unfound[id] = [id, info['Last Name'], info['First Name']]
+
+ 
 def ShiftDemos(session):
   demoSkills = session.query(DemonstrationSkill)
   for demoSkill in demoSkills:
     if demoSkill.targetLevel >= 9:
       demoSkill.targetLevel -= 8
       demoSkill.demonstratedLevel -= 8
-    print demoSkill
+
+  session.commit()
+
+  studentComps = session.query(StudentCompetency)
+  for sc in studentComps:
+    if sc.level >= 9:
+      sc.level -= 8
+
+
   session.commit()
 
 def SyncStandards(session):
@@ -109,6 +147,7 @@ class SkillImporter:
       with open(target, 'rb') as file:
         reader = csv.DictReader(file)
         self.readCsv (reader)
+
   def loadUrls(self):
     targets = self.config["standardsSheets"]
     baseUrl = self.config["standardsUrl"]
@@ -173,17 +212,4 @@ class SkillImporter:
 def IsCompetency(data):
   return data["Type"] == "Competency Statement"
 
-class ImportStudentDemonstrations:
-  def execute(self, targets, session):
-    studentDemos = session.query(StudentDe)
-    for target in targets:
-      with open(target, 'rb') as file:
-        reader = csv.DictReader(file)
-        self.readCsv (reader)
-
-  def readCsv(self, reader, session):
-    competencies = session.query(Competency)
-    students = session.query(Student)
-    for data in reader:
-      pass
 Main()
