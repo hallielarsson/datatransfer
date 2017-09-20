@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime
+import datetime
 import re
 
 Base = declarative_base()
@@ -71,6 +72,13 @@ class Student(Base):
   studentNumber = Column(Integer)
   graduationYear = Column(Integer)
 
+  demoInfos = []
+
+  def addDemoInfo(self, demoInfo):
+    self.demoInfos.append(demoInfo)
+    print len(self.demoInfos)
+
+
   def __repr__(self):
     return self.code + ": " + self.lastName + ", " + self.firstName
 
@@ -141,9 +149,28 @@ class Skill(Base):
 class Demonstration(Base):
   __tablename__ = "cbl_demonstrations"
   id = Column(Integer, primary_key=True)
-  def readDict(self, data):
+  created = Column(DateTime)
+  creatorID = Column(Integer)
+  modified = Column(DateTime)
+  modifierID = Column(Integer)
+  studentID = Column(Integer)
+  demonstrated = Column(DateTime)
+  artifactURL = Column(String)
+  comments = Column(String)
+  experienceType = Column(String)
+  context = Column(String)
+  performanceType = Column(String)
+
+  def readDict(self, data, studentNumber):
     self._class = 'Slate\CBL\Demonstrations\ExperienceDemonstration'
-    self.creatorID = 1
+    self.creatorID = self.creatorID or 1
+    self.modifierID = 1
+    self.modified = datetime.datetime.now()
+    self.demonstrated = data['Date']
+    self.experienceType = "Baxter Course (Legacy)"
+    self.context = data['Course Name']
+    self.performanceType = 'Final Grade IC Import'
+    self.comments = data['Teacher'] + " : " + data['Comments']
 
 class DemonstrationSkill(Base):
   __tablename__ = "cbl_demonstration_skills"

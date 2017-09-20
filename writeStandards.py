@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import csv
 import re
 import urllib2
+import datetime
 
 
 from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration
@@ -43,41 +44,63 @@ def Main():
   conn= engine.connect()
   trans = conn.begin()
   session = Session(bind=conn,autoflush=False, autocommit = False)
-  studentsByID = {}
-
-  students = session.query(Student)
-  for student in students:
-    studentsByID[student.studentNumber] = student
 
 
-  readDemos(session, studentsByID)
-  #SyncStandards(session)
+  compsByBaxterName = SyncStandards(session)
+  di = DemoImporter(compsByBaxterName, session)
+  di.readDemos()
 
   #ShiftDemos(session)
 
-unfound = {}
-def readDemos(session, studentsByID):
-    #studentDemos = session.query(Demonstration)
-    targets = ['data/StudentStandards1617.csv']
-    for target in targets:
-      with open(target, 'rb') as file:
+class DemoImporter:
+  def __init__(self, compsByBaxterName, session):  
+
+    self.unfound = {}
+    self.session = session
+
+    self.students = session.query(Student)
+    self.compsByBaxterName = compsByBaxterName
+    self.demos = self.session.query(Demonstration)
+
+    
+  def readDemos(self):
+    targets = config['studentCompetencies']
+    for targetInfo in targets:
+      filename = "data/" + targetInfo['file']
+      year = targetInfo['year']
+      with open(filename, 'rb') as file:
         reader = csv.DictReader(file)
         for entry in reader:
-          readDemo(entry, studentsByID)
+          self.readDemo(entry)
     for data in unfound:
-      print ",".join(unfound[data]) # + " : " + data["First Name"] + " " + data["Last Name"]
+      print "NOT FOUND: " + ",".join(unfound[data])
 
 
+  def readDemo(self, info):
+    unfound = self.unfound
+    compsByBaxterName = self.compsByBaxterName
+    student = self.students.filter_by(studentNumber = info['State ID'])
 
-def readDemo(info, studentsByID):
-  id = info["State ID"]
-  if id in studentsByID.keys():
-    student = studentsByID[id]
-  else:
-    if not id in unfound.keys():
-      unfound[id] = [id, info['Last Name'], info['First Name']]
+    demo = self.getDemo(info, student)
 
- 
+    compName = info['Task']    
+    if not compName in compsByBaxterName.keys():
+      print compName
+
+    #TODO: Enter the SKILL RECORD
+
+  def getDemo(self, info, student):
+    recordTime = datetime.datetime.strptime(info['Date'])
+    matches = self.demos.filter_by(demonstrated = recordTime, studentID = student.id, context=info['Course Name'])
+    if matches.count() > 0:
+      print 'Match Found'
+      return matches.first()
+    else:
+      newDemo = Demonstration()
+      newDemo.readDict(info)
+      self.demos = self.session.query(Demonstration)
+      return newDemo
+
 def ShiftDemos(session):
   demoSkills = session.query(DemonstrationSkill)
   for demoSkill in demoSkills:
@@ -92,11 +115,9 @@ def ShiftDemos(session):
     if sc.level >= 9:
       sc.level -= 8
 
-
   session.commit()
 
 def SyncStandards(session):
-
   compIndex = {}
   skillIndex = {}
   compsByCode = {}
@@ -104,7 +125,6 @@ def SyncStandards(session):
 
   try:
     oldCompetencies = session.query(Competency)
-    print oldCompetencies
 
     for comp in oldCompetencies:
       compIndex[str(comp.id)] = comp
@@ -117,7 +137,7 @@ def SyncStandards(session):
         skill.code = skill.code.upper()
     importer = SkillImporter(compIndex, skillIndex, compsByCode, skillsByCode, session)
     importer.loadUrls()
-
+    return importer.compsByBaxterName
     #for skill in session.query(Skill):
       #print skill
 
@@ -131,7 +151,6 @@ def SyncStandards(session):
 
 
 class SkillImporter:
-  config = config
   competencies = []
   skills = []
   def __init__(self, compIndex, skillIndex, compsByCode, skillsByCode, session):
@@ -140,6 +159,8 @@ class SkillImporter:
       self.session = session
       self.compsByCode = compsByCode
       self.skillsByCode = skillsByCode
+      self.compsByBaxterName = {}
+      self.config = config
 
   def loadFiles(self):
     targets = self.config["standardFiles"]
@@ -173,7 +194,6 @@ class SkillImporter:
     id = str(data["ID"])
     code = data["Code"].upper()
     print " ...[" + code +  "]..."
-    print self.skillsByCode.keys()
     if id in self.skillIndex.keys():
       return self.skillIndex[id]
     elif code in self.skillsByCode.keys(): 
@@ -192,6 +212,8 @@ class SkillImporter:
       if IsCompetency(skillData): 
         comp = self.getComp(skillData)
         comp.readDict(skillData)
+        for key in comp.icName.split(','):
+          self.compsByBaxterName[key.strip()] = comp
         if comp.contentAreaID == None:
           comp.contentAreaID = domainId
         currentComp = comp
