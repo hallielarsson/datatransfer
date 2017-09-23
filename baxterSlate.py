@@ -161,7 +161,7 @@ class Demonstration(Base):
   context = Column(String)
   performanceType = Column(String)
 
-  def readDict(self, data, studentNumber):
+  def readDict(self, data, studentID):
     self._class = 'Slate\CBL\Demonstrations\ExperienceDemonstration'
     self.creatorID = self.creatorID or 1
     self.modifierID = 1
@@ -170,7 +170,8 @@ class Demonstration(Base):
     self.experienceType = "Baxter Course (Legacy)"
     self.context = data['Course Name']
     self.performanceType = 'Final Grade IC Import'
-    self.comments = data['Teacher'] + " : " + data['Comments']
+    self.comments = data['Teacher Display'] + " : " + data['Comments']
+    self.studentID = studentID
 
 class DemonstrationSkill(Base):
   __tablename__ = "cbl_demonstration_skills"
@@ -187,4 +188,8 @@ class DemonstrationSkill(Base):
 
   def readDict(self, data):
     self._class = 'Slate\CBL\Demonstrations\DemonstrationSkill'
-    self.creatorID = 1
+    self.creatorID = self.creatorID or 1
+    self.modifierID = 1
+    self.modified = datetime.datetime.now()
+    self.targetLevel = levelLut[data['targetLevel']]
+    self.demonstratedLevel = levelLut[data['targetLevel']]
