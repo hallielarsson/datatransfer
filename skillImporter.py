@@ -50,7 +50,6 @@ class SkillImporter:
   def getSkill(self, data):
     id = str(data["ID"])
     code = data["Code"].upper()
-    print " ...[" + code +  "]..."
     if id in self.skillIndex.keys():
       return self.skillIndex[id]
     elif code in self.skillsByCode.keys(): 
@@ -85,5 +84,4 @@ class SkillImporter:
         index += 1
         skill.competency = currentComp
         skill.competencyID = currentComp.id
-        print (skill.code)
         self.session.add(skill)
