@@ -149,6 +149,7 @@ class Skill(Base):
 class Demonstration(Base):
   __tablename__ = "cbl_demonstrations"
   id = Column(Integer, primary_key=True)
+  _class = Column('class', String)
   created = Column(DateTime)
   creatorID = Column(Integer)
   modified = Column(DateTime)
@@ -166,7 +167,7 @@ class Demonstration(Base):
     self.creatorID = self.creatorID or 1
     self.modifierID = 1
     self.modified = datetime.datetime.now()
-    self.demonstrated = data['Date']
+    self.demonstrated = datetime.datetime.strptime(data['Date'], "%m/%d/%Y")
     self.experienceType = "Baxter Course (Legacy)"
     self.context = data['Course Name']
     self.performanceType = 'Final Grade IC Import'

@@ -66,17 +66,33 @@ class DemoImporter:
     if not compName in self.compsByBaxterName.keys():
       print compName + " NOT FOUND"
       return
-    comp = self.compsByBaxterName[compName]
-    print comp.descriptor + ", " + str(comp.id)
-    compSkills = self.skillsByCompID[comp.id]
 
+    comp = self.compsByBaxterName[compName]
+
+    if not comp.id in self.skillsByCompID.keys():
+      print comp.descriptor + ", " + str(comp.id) + " has no SLATE defined skills"
+      return
+
+    compSkills = self.skillsByCompID[comp.id]
     demo = self.getDemo(info, student)
-    if demo.id != None:
+    self.session.add(demo)
+    self.session.flush()
+
+    if demo.id in self.demoSkills.keys():
       demoSkills = self.demoSkills[demo.id]
-      newSkills = self.getMissingSkillsInDemo(compSkills, demoSkills)
+    else:
+      demoSkills = []
+
+    newSkills = self.getMissingSkillsInDemo(compSkills, demoSkills)
+
     
 
-
+  def getMissingSkillsInDemo(self, compSkills, demoSkills):
+    out = []
+    for skill in compSkills:
+      if skill not in demoSkills:
+        out.append(skill)
+    return out
 
   def getDemo(self, info, student):
 
