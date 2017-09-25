@@ -23,7 +23,7 @@ legacyLevelLut = {
   "GB" : 11,
   "AD" : 12,
   "EX" : 13,
-  "BA" : 14,  
+  "BA" : 14,
   "" : -1
 }
 
@@ -161,6 +161,13 @@ class Demonstration(Base):
   experienceType = Column(String)
   context = Column(String)
   performanceType = Column(String)
+  demoSkills = None
+
+  def addDemoSkills(self, demoSkills):
+    if self.demoSkills == None:
+      self.demoSkills = []
+
+    self.demoSkills.extend(demoSkills)
 
   def readDict(self, data, studentID):
     self._class = 'Slate\CBL\Demonstrations\ExperienceDemonstration'

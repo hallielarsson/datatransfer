@@ -8,19 +8,18 @@ termMonthLut = {
 
 }
 class DemoImporter:
-  def __init__(self, compsByBaxterName, session):  
+  def __init__(self, compsByBaxterName, session):
 
     self.compsByBaxterName = compsByBaxterName
     self.session = session
 
     self.unfound = {}
 
-    self.demoSkills = self.GetDemoSkillsByDemo(session.query(DemonstrationSkill).all())
-    self.skillsByID, self.skillsByCompID = self.GetSkillIndices(session.query(Skill).all())
     self.studentsByNumber, self.studentsByID = self.GetStudentIndicies(session.query(Student).all())
+    self.demoSkillsByID = self.GetDemoSkills(session.query(DemonstrationSkill).all())
+    self.skillsByID, self.skillsByCompID = self.GetSkillIndices(session.query(Skill).all())
     self.demosByHash = self.GetDemosByHash(self.session.query(Demonstration).all())
 
-    
   def readDemos(self, targets):
     unfound = self.unfound
     entries = []
@@ -47,12 +46,15 @@ class DemoImporter:
     for data in unfound:
       print "NOT FOUND: " + ",".join(unfound[data])
 
-    sortedEntries = sorted(entries, key=lambda k: datetime.datetime.strptime(k['Date'], '%m/%d/%Y')) 
+    sortedEntries = sorted(entries, key=lambda k: datetime.datetime.strptime(k['Date'], '%m/%d/%Y'))
 
-    for entry in sortedEntries:
+    sl = sortedEntries[0:100]
+
+    for entry in sl:
       self.readDemo(entry)
+      self.session.commit()
 
-
+    self.session.commit()
 
   def readDemo(self, info):
     stateID = info['State ID']
@@ -76,16 +78,10 @@ class DemoImporter:
     compSkills = self.skillsByCompID[comp.id]
     demo = self.getDemo(info, student)
     self.session.add(demo)
-    self.session.flush()
+    print "adding demo " + demo.context
+    demo.addDemoSkills(compSkills)
 
-    if demo.id in self.demoSkills.keys():
-      demoSkills = self.demoSkills[demo.id]
-    else:
-      demoSkills = []
-
-    newSkills = self.getMissingSkillsInDemo(compSkills, demoSkills)
-
-    
+    #newSkills = self.getMissingSkillsInDemo(compSkills, demoSkills)
 
   def getMissingSkillsInDemo(self, compSkills, demoSkills):
     out = []
@@ -105,6 +101,7 @@ class DemoImporter:
     else:
       newDemo = Demonstration()
       newDemo.readDict(info, student.id)
+      self.demosByHash[demoHash] = demo
       return newDemo
 
   def GetSkillIndices(self, skills):
@@ -135,13 +132,17 @@ class DemoImporter:
     demosByHash = {}
     for demo in demos:
       student = self.studentsByID[demo.studentID]
-      demoHash = (demo.demonstrated.strftime("%m/%d/%Y")) + str(student.studentNumber) + demo.context
+      demoHash = self.GetDemoHash(demo, student)
       demosByHash[demoHash] = demo
 
     return demosByHash
 
-  def GetDemoSkillsByDemo(self, demoSkills):
+  def GetDemoHash(self, demo, student):
+    return (demo.demonstrated.strftime("%m/%d/%Y")) + str(student.studentNumber) + demo.context
+
+  def GetDemoSkills(self, demoSkills):
     demoSkillsByDemoID = {}
+    demoSkillsByHash = {}
     for demoSkill in demoSkills:
       demoID = demoSkill.demonstrationID
       if demoID in demoSkillsByDemoID.keys():
