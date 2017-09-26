@@ -5,11 +5,10 @@ termMonthLut = {
   "T1" : "08",
   "T2" : "12",
   "T3" : "04"
-
 }
+
 class DemoImporter:
   def __init__(self, compsByBaxterName, session):
-
     self.compsByBaxterName = compsByBaxterName
     self.session = session
 
@@ -29,39 +28,57 @@ class DemoImporter:
       with open(filename, 'rb') as file:
         reader = csv.DictReader(file)
         for entry in reader:
-          if(entry['Date'] != ''):
-            entries.append(entry)
-          else:
-            term = entry['Term Name']
-            month = termMonthLut[term]
-            renderYear = year
-            if (int(month) < 8):
-              renderYear = renderYear + 1
-
-            dateString = month + "/" + "01" + "/" + str(renderYear)
-            entry['Date'] = dateString
-            print "DATE INFO BAD Set to" +  dateString + "for data: " + ','.join(entry.values())
-
-    for data in unfound:
-      print "NOT FOUND: " + ",".join(unfound[data])
+            self.validateDate(entry, year)
+            if not entry["Score"] == "":
+              entries.append(entry)
 
     sortedEntries = sorted(entries, key=lambda k: datetime.datetime.strptime(k['Date'], '%m/%d/%Y'))
 
-    sl = sortedEntries[0:100]
-
     changedDemos = []
+    sl = sortedEntries[0:100]
     for entry in sl:
+      print ",".join(entry.keys())
       print ",".join(entry.values())
       demo, newDemo = self.readDemo(entry)
-      #self.session.commit()
-      if newDemo:
-          changedDemos.append(demo)
+      if demo:
+        changedDemos.append(demo)
 
     self.session.commit()
 
+    fixedIds = []
     print ("CHANGED DEMOS")
     for demo in changedDemos:
-        print demo.id
+        id = demo.id
+        if not id in fixedIds:
+            print str(demo.id)
+            fixedIds.append(id)
+            self.addDemoSkills(demo, self.session)
+
+    self.session.commit()
+
+  def addDemoSkills(self, demo, session):
+    demosWithSkills = self.demoSkillsByID.keys()
+    if demo.id in demosWithSkills:
+      demoSkills = self.demoSkillsByID[demo.id]
+    else:
+      demoSkills = []
+
+    recordedIDs = []
+    for demoSkill in demoSkills:
+      recordedIDs.append(demoSkill.skillID)
+
+    skillDatas = demo.skillDatas
+    for skillData in skillDatas:
+      for skill in skillData["skills"]:
+        if skill.id not in recordedIDs:
+          demoSkill = DemonstrationSkill()
+          demoSkill.init()
+          demoSkill.targetLevel = skillData["level"]
+          demoSkill.demonstratedLevel = skillData["level"]
+          demoSkill.skillID = skill.id
+          demoSkill.demonstrationID = demo.id
+          session.add(demoSkill)
+
 
   def readDemo(self, info):
     stateID = info['State ID']
@@ -73,7 +90,6 @@ class DemoImporter:
     demo, newDemo = self.getDemo(info, student)
     if newDemo:
         self.session.add(demo)
-    return demo, newDemo
 
     compName = info['Task']
     if not compName in self.compsByBaxterName.keys():
@@ -87,15 +103,11 @@ class DemoImporter:
       return
 
     compSkills = self.skillsByCompID[comp.id]
-    print "adding demo " + demo.context
-    demo.addSkills(compSkills)
+    print "adding demo " + demo.context + " " + info['Score']
+    demo.addSkillDatas(compSkills, info['Score'])
+    return demo, newDemo
 
-  def getMissingSkillsInDemo(self, compSkills, demoSkills):
-    out = []
-    for skill in compSkills:
-      if skill not in demoSkills:
-        out.append(skill)
-    return out
+
 
   def getDemo(self, info, student):
     myDate = info['Date']
@@ -157,3 +169,17 @@ class DemoImporter:
         demoSkillsByDemoID[demoID] = dsList
 
     return demoSkillsByDemoID
+
+  def validateDate(self, entry, year):
+      if(entry['Date'] != ''):
+        return entry
+      else:
+        term = entry['Term Name']
+        month = termMonthLut[term]
+        renderYear = year
+        if (int(month) < 8):
+          renderYear = renderYear + 1
+        dateString = month + "/" + "01" + "/" + str(renderYear)
+        entry['Date'] = dateString
+
+      return entry

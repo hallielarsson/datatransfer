@@ -78,12 +78,14 @@ __tablename__	baxterSlate.py	/^  __tablename__ = "people"$/;"	v	class:Student
 __tablename__	sqlAlchemyTest.py	/^  __tablename__ = 'users'$/;"	v	class:User
 _class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:Competency
 _class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:Demonstration
+_class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:DemonstrationSkill
 _class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:Skill
 _class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:Student
 _class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:StudentCompetency
 accountLevel	baxterSlate.py	/^  accountLevel = Column(String)$/;"	v	class:Student
 addDemoInfo	baxterSlate.py	/^  def addDemoInfo(self, demoInfo):$/;"	m	class:Student
-addSkills	baxterSlate.py	/^  def addSkills(self, skills):$/;"	m	class:Demonstration
+addDemoSkills	demoImporter.py	/^  def addDemoSkills(self, demo, session):$/;"	m	class:DemoImporter
+addSkillDatas	baxterSlate.py	/^  def addSkillDatas(self, skills, level):$/;"	m	class:Demonstration
 artifactURL	baxterSlate.py	/^  artifactURL = Column(String)$/;"	v	class:Demonstration
 birthdate	baxterSlate.py	/^  birthdate = Column(DateTime)$/;"	v	class:Student
 code	baxterSlate.py	/^  code = Column(String)$/;"	v	class:Competency
@@ -147,7 +149,6 @@ getDict	writeStudents.py	/^	def getDict(self):$/;"	m	class:Student
 getId	writeStudents.py	/^	def getId(self):$/;"	m	class:Student
 getKey	csvKey.py	/^  def getKey(self):$/;"	m	class:CsvKey
 getKeys	writeStudents.py	/^	def getKeys(self):$/;"	m	class:Student
-getMissingSkillsInDemo	demoImporter.py	/^  def getMissingSkillsInDemo(self, compSkills, demoSkills):$/;"	m	class:DemoImporter
 getSkill	skillImporter.py	/^  def getSkill(self, data):$/;"	m	class:SkillImporter
 getUsername	writeStudents.py	/^	def getUsername(self):$/;"	m	class:Student
 graduationYear	baxterSlate.py	/^  graduationYear = Column(Integer)$/;"	v	class:Student
@@ -158,6 +159,7 @@ id	baxterSlate.py	/^  id = Column(Integer, primary_key=True)$/;"	v	class:Skill
 id	baxterSlate.py	/^  id = Column(Integer, primary_key=True)$/;"	v	class:Student
 id	baxterSlate.py	/^  id = Column(Integer, primary_key=True)$/;"	v	class:StudentCompetency
 id	sqlAlchemyTest.py	/^  id = Column(Integer, primary_key=True)$/;"	v	class:User
+init	baxterSlate.py	/^  def init(self):$/;"	m	class:DemonstrationSkill
 json	sqlAlchemyTest.py	/^import json$/;"	i
 json	testLogin.py	/^import requests, json$/;"	i
 json	writeStandards.py	/^import json$/;"	i
@@ -213,8 +215,8 @@ setAddress	writeStudents.py	/^	def setAddress(self):$/;"	m	class:Student
 setEmail	writeStudents.py	/^	def setEmail(self):$/;"	m	class:Student
 setIfEmpty	csvKey.py	/^  def setIfEmpty(self, value):$/;"	m	class:CsvKey
 setUserName	writeStudents.py	/^	def setUserName(self):$/;"	m	class:Student
+skillDatas	baxterSlate.py	/^  skillDatas = []$/;"	v	class:Demonstration
 skillID	baxterSlate.py	/^  skillID = Column(Integer)$/;"	v	class:DemonstrationSkill
-skills	baxterSlate.py	/^  skills = None$/;"	v	class:Demonstration
 skills	skillImporter.py	/^  skills = []$/;"	v	class:SkillImporter
 sqlalchemy	writeStudents.py	/^import sqlalchemy$/;"	i
 statement	baxterSlate.py	/^  statement = Column(String)$/;"	v	class:Competency
@@ -239,4 +241,5 @@ usedNames	writeStudents.py	/^usedNames = []$/;"	v
 username	baxterSlate.py	/^  username = Column(String)$/;"	v	class:Student
 validStudent	writeStudents.py	/^			validStudent = Student(student)$/;"	v
 validate	writeStudents.py	/^def validate(student):$/;"	f
+validateDate	demoImporter.py	/^  def validateDate(self, entry, year):$/;"	m	class:DemoImporter
 validateDescriptor	baxterSlate.py	/^  def validateDescriptor(self):$/;"	m	class:Skill

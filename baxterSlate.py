@@ -161,13 +161,14 @@ class Demonstration(Base):
   experienceType = Column(String)
   context = Column(String)
   performanceType = Column(String)
-  skills = None
+  skillDatas = []
 
-  def addSkills(self, skills):
-    if self.skills == None:
-      self.skills = []
 
-    self.skills.extend(skills)
+  def addSkillDatas(self, skills, level):
+    print("-------------------------")
+    print ("level " +str(level))
+    self.skillDatas.append({ "skills" : skills, "level" : levelLut[level] })
+
 
   def readDict(self, data, studentID):
     self._class = 'Slate\CBL\Demonstrations\ExperienceDemonstration'
@@ -183,6 +184,7 @@ class Demonstration(Base):
 
 class DemonstrationSkill(Base):
   __tablename__ = "cbl_demonstration_skills"
+  _class = Column('class', String)
   id = Column(Integer, primary_key=True)
   created = Column(DateTime)
   creatorID = Column(Integer)
@@ -194,10 +196,13 @@ class DemonstrationSkill(Base):
   def __repr__(self):
     return str(self.id) + " : " + str(self.targetLevel) + " : " + str(self.demonstratedLevel)
 
-  def readDict(self, data):
+  def init(self):
     self._class = 'Slate\CBL\Demonstrations\DemonstrationSkill'
     self.creatorID = self.creatorID or 1
     self.modifierID = 1
     self.modified = datetime.datetime.now()
+
+  def readDict(self, data):
+    self.init()
     self.targetLevel = levelLut[data['targetLevel']]
     self.demonstratedLevel = levelLut[data['targetLevel']]
