@@ -136,7 +136,7 @@ demonstrationsRequired	baxterSlate.py	/^  demonstrationsRequired = Column(String
 descriptor	baxterSlate.py	/^  descriptor = Column(String)$/;"	v	class:Competency
 descriptor	baxterSlate.py	/^  descriptor = Column(String)$/;"	v	class:Skill
 engine	sqlAlchemyTest.py	/^engine = create_engine('sqlite:\/\/\/memory:', echo=True)$/;"	v
-engine	writeStandards.py	/^engine = create_engine(url, echo=False)$/;"	v
+engine	writeStandards.py	/^engine = create_engine(url, echo=True)$/;"	v
 enteredVia	baxterSlate.py	/^  enteredVia = Column(String)$/;"	v	class:StudentCompetency
 experienceType	baxterSlate.py	/^  experienceType = Column(String)$/;"	v	class:Demonstration
 firstName	baxterSlate.py	/^  firstName = Column(String)$/;"	v	class:Student
@@ -215,7 +215,7 @@ setAddress	writeStudents.py	/^	def setAddress(self):$/;"	m	class:Student
 setEmail	writeStudents.py	/^	def setEmail(self):$/;"	m	class:Student
 setIfEmpty	csvKey.py	/^  def setIfEmpty(self, value):$/;"	m	class:CsvKey
 setUserName	writeStudents.py	/^	def setUserName(self):$/;"	m	class:Student
-skillDatas	baxterSlate.py	/^  skillDatas = []$/;"	v	class:Demonstration
+skillDatas	baxterSlate.py	/^  skillDatas = None$/;"	v	class:Demonstration
 skillID	baxterSlate.py	/^  skillID = Column(Integer)$/;"	v	class:DemonstrationSkill
 skills	skillImporter.py	/^  skills = []$/;"	v	class:SkillImporter
 sqlalchemy	writeStudents.py	/^import sqlalchemy$/;"	i

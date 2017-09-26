@@ -161,11 +161,13 @@ class Demonstration(Base):
   experienceType = Column(String)
   context = Column(String)
   performanceType = Column(String)
-  skillDatas = []
+  skillDatas = None
 
 
   def addSkillDatas(self, skills, level):
     print("-------------------------")
+    if self.skillDatas == None:
+      self.skillDatas = []
     print ("level " +str(level))
     self.skillDatas.append({ "skills" : skills, "level" : levelLut[level] })
 

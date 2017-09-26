@@ -65,6 +65,7 @@ class DemoImporter:
 
     recordedIDs = []
     for demoSkill in demoSkills:
+      print "DS" + str(demoSkill)
       recordedIDs.append(demoSkill.skillID)
 
     skillDatas = demo.skillDatas
@@ -77,7 +78,8 @@ class DemoImporter:
           demoSkill.demonstratedLevel = skillData["level"]
           demoSkill.skillID = skill.id
           demoSkill.demonstrationID = demo.id
-          session.add(demoSkill)
+          print demo.context + " " + skill.descriptor
+          #session.add(demoSkill)
 
 
   def readDemo(self, info):
@@ -94,13 +96,13 @@ class DemoImporter:
     compName = info['Task']
     if not compName in self.compsByBaxterName.keys():
       print compName + " NOT FOUND"
-      return
+      return None, False
 
     comp = self.compsByBaxterName[compName]
 
     if not comp.id in self.skillsByCompID.keys():
       print comp.descriptor + ", " + str(comp.id) + " has no SLATE defined skills"
-      return
+      return None, False
 
     compSkills = self.skillsByCompID[comp.id]
     print "adding demo " + demo.context + " " + info['Score']
@@ -163,7 +165,7 @@ class DemoImporter:
       demoID = demoSkill.demonstrationID
       if demoID in demoSkillsByDemoID.keys():
         dsList = demoSkillsByDemoID[demoID]
-        dsList.append(demoID)
+        dsList.append(demoSkill)
       else:
         dsList = [demoSkill]
         demoSkillsByDemoID[demoID] = dsList
