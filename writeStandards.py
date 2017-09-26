@@ -41,7 +41,7 @@ url = URL("mysql", username = config['dbUsername'], password = config['dbPasswor
   port = config['dbPort'], database = config['database'])
 
 Session = sessionmaker()
-engine = create_engine(url, echo=True)
+engine = create_engine(url, echo=False)
 
 def Main():
   conn= engine.connect()

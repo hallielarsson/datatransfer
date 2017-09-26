@@ -42,7 +42,6 @@ class DemoImporter:
             entry['Date'] = dateString
             print "DATE INFO BAD Set to" +  dateString + "for data: " + ','.join(entry.values())
 
-
     for data in unfound:
       print "NOT FOUND: " + ",".join(unfound[data])
 
@@ -50,19 +49,31 @@ class DemoImporter:
 
     sl = sortedEntries[0:100]
 
+    changedDemos = []
     for entry in sl:
-      self.readDemo(entry)
-      self.session.commit()
+      print ",".join(entry.values())
+      demo, newDemo = self.readDemo(entry)
+      #self.session.commit()
+      if newDemo:
+          changedDemos.append(demo)
 
     self.session.commit()
+
+    print ("CHANGED DEMOS")
+    for demo in changedDemos:
+        print demo.id
 
   def readDemo(self, info):
     stateID = info['State ID']
     if not stateID in self.studentsByNumber.keys():
       print stateID + " : " + info["Last Name"] + ", " + info["First Name"] + " NOT FOUND"
-      return
+      return None, False
 
     student = self.studentsByNumber[stateID]
+    demo, newDemo = self.getDemo(info, student)
+    if newDemo:
+        self.session.add(demo)
+    return demo, newDemo
 
     compName = info['Task']
     if not compName in self.compsByBaxterName.keys():
@@ -76,12 +87,8 @@ class DemoImporter:
       return
 
     compSkills = self.skillsByCompID[comp.id]
-    demo = self.getDemo(info, student)
-    self.session.add(demo)
     print "adding demo " + demo.context
-    demo.addDemoSkills(compSkills)
-
-    #newSkills = self.getMissingSkillsInDemo(compSkills, demoSkills)
+    demo.addSkills(compSkills)
 
   def getMissingSkillsInDemo(self, compSkills, demoSkills):
     out = []
@@ -91,18 +98,17 @@ class DemoImporter:
     return out
 
   def getDemo(self, info, student):
-
     myDate = info['Date']
     courseName = info['Course Name']
     demoHash = str(myDate) + str(student.studentNumber) + courseName
-
+    print demoHash
     if demoHash in self.demosByHash.keys():
-      return self.demosByHash[demoHash]
+      return self.demosByHash[demoHash], False
     else:
-      newDemo = Demonstration()
-      newDemo.readDict(info, student.id)
+      demo = Demonstration()
+      demo.readDict(info, student.id)
       self.demosByHash[demoHash] = demo
-      return newDemo
+      return demo, True
 
   def GetSkillIndices(self, skills):
     skillsByCompID = {}
@@ -125,7 +131,6 @@ class DemoImporter:
     for student in students:
       studentsByNumber[student.studentNumber] = student
       studentsByID[student.id] = student
-
     return studentsByNumber, studentsByID
 
   def GetDemosByHash(self, demos):
@@ -134,7 +139,6 @@ class DemoImporter:
       student = self.studentsByID[demo.studentID]
       demoHash = self.GetDemoHash(demo, student)
       demosByHash[demoHash] = demo
-
     return demosByHash
 
   def GetDemoHash(self, demo, student):

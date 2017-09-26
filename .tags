@@ -83,7 +83,7 @@ _class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:Student
 _class	baxterSlate.py	/^  _class = Column('class', String)$/;"	v	class:StudentCompetency
 accountLevel	baxterSlate.py	/^  accountLevel = Column(String)$/;"	v	class:Student
 addDemoInfo	baxterSlate.py	/^  def addDemoInfo(self, demoInfo):$/;"	m	class:Student
-addDemoSkills	baxterSlate.py	/^  def addDemoSkills(self, demoSkills):$/;"	m	class:Demonstration
+addSkills	baxterSlate.py	/^  def addSkills(self, skills):$/;"	m	class:Demonstration
 artifactURL	baxterSlate.py	/^  artifactURL = Column(String)$/;"	v	class:Demonstration
 birthdate	baxterSlate.py	/^  birthdate = Column(DateTime)$/;"	v	class:Student
 code	baxterSlate.py	/^  code = Column(String)$/;"	v	class:Competency
@@ -127,7 +127,6 @@ declarative_base	sqlAlchemyTest.py	/^from sqlalchemy.ext.declarative import decl
 declarative_base	writeStandards.py	/^from sqlalchemy.ext.declarative import declarative_base$/;"	i
 delimeter	writeStudents.py	/^delimeter = ","$/;"	v
 demoInfos	baxterSlate.py	/^  demoInfos = []$/;"	v	class:Student
-demoSkills	baxterSlate.py	/^  demoSkills = None$/;"	v	class:Demonstration
 demonstrated	baxterSlate.py	/^  demonstrated = Column(DateTime)$/;"	v	class:Demonstration
 demonstratedLevel	baxterSlate.py	/^  demonstratedLevel = Column(Integer)$/;"	v	class:DemonstrationSkill
 demonstrationID	baxterSlate.py	/^  demonstrationID = Column(Integer)$/;"	v	class:DemonstrationSkill
@@ -135,7 +134,7 @@ demonstrationsRequired	baxterSlate.py	/^  demonstrationsRequired = Column(String
 descriptor	baxterSlate.py	/^  descriptor = Column(String)$/;"	v	class:Competency
 descriptor	baxterSlate.py	/^  descriptor = Column(String)$/;"	v	class:Skill
 engine	sqlAlchemyTest.py	/^engine = create_engine('sqlite:\/\/\/memory:', echo=True)$/;"	v
-engine	writeStandards.py	/^engine = create_engine(url, echo=True)$/;"	v
+engine	writeStandards.py	/^engine = create_engine(url, echo=False)$/;"	v
 enteredVia	baxterSlate.py	/^  enteredVia = Column(String)$/;"	v	class:StudentCompetency
 experienceType	baxterSlate.py	/^  experienceType = Column(String)$/;"	v	class:Demonstration
 firstName	baxterSlate.py	/^  firstName = Column(String)$/;"	v	class:Student
@@ -215,6 +214,7 @@ setEmail	writeStudents.py	/^	def setEmail(self):$/;"	m	class:Student
 setIfEmpty	csvKey.py	/^  def setIfEmpty(self, value):$/;"	m	class:CsvKey
 setUserName	writeStudents.py	/^	def setUserName(self):$/;"	m	class:Student
 skillID	baxterSlate.py	/^  skillID = Column(Integer)$/;"	v	class:DemonstrationSkill
+skills	baxterSlate.py	/^  skills = None$/;"	v	class:Demonstration
 skills	skillImporter.py	/^  skills = []$/;"	v	class:SkillImporter
 sqlalchemy	writeStudents.py	/^import sqlalchemy$/;"	i
 statement	baxterSlate.py	/^  statement = Column(String)$/;"	v	class:Competency

@@ -161,13 +161,13 @@ class Demonstration(Base):
   experienceType = Column(String)
   context = Column(String)
   performanceType = Column(String)
-  demoSkills = None
+  skills = None
 
-  def addDemoSkills(self, demoSkills):
-    if self.demoSkills == None:
-      self.demoSkills = []
+  def addSkills(self, skills):
+    if self.skills == None:
+      self.skills = []
 
-    self.demoSkills.extend(demoSkills)
+    self.skills.extend(skills)
 
   def readDict(self, data, studentID):
     self._class = 'Slate\CBL\Demonstrations\ExperienceDemonstration'
