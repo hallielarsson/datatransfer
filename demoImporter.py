@@ -15,11 +15,11 @@ class DemoImporter:
 
     self.unfound = {}
 
+    comps = session.query(Competency).all()
     self.competenciesByID = {}
-    comps = self.session.query(Competency).all()
     for comp in comps:
-      print comp.id
-      self.competenciesByID[comp.id] = comp
+     self.competenciesByID[comp.id] = comp
+
     self.studentsByNumber, self.studentsByID = self.GetStudentIndicies(session.query(Student).all())
     self.demoSkillsByID = self.GetDemoSkills(session.query(DemonstrationSkill).all())
     self.skillsByID, self.skillsByCompID = self.GetSkillIndices(session.query(Skill).all())
@@ -99,9 +99,21 @@ class DemoImporter:
     competencyRecords = [sc for sc in self.studentCompetencies if sc.studentID == student.id and sc.competencyID == competency.id]
     if len(competencyRecords) < 1:
       print "STUDENT NOT ENROLLED: " + student.firstName + " " + student.lastName + " " + competency.descriptor
+      self.enrollStudent(student, competency)
     else:
-      print  "STUDENT ENROLLED!: " + student.firstName + " " + student.lastName + " " + competency.descriptor + " " + str(competencyRecords[0].level)
+      print  "STUDENT ENROLLED! " + student.firstName + " " + student.lastName + " " + competency.descriptor + " " + str(competencyRecords[0].level)
 
+
+  def enrollStudent(self, student, competency):
+    enrollment = StudentCompetency()
+    enrollment.studentID = student.id
+    assert(competency.id != None)
+    enrollment.competencyID = competency.id
+    enrollment.level = 1
+    self.session.add(enrollment)
+    #self.session.flush()
+    print "ENROLLED " + student.firstName + " " + student.lastName + " " + competency.descriptor + " " + str(competency.id) + " " + str(enrollment.level)
+    self.studentCompetencies.append(enrollment)
 
   def readDemo(self, info):
     stateID = info['State ID']

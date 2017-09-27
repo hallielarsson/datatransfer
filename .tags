@@ -63,6 +63,7 @@ StudentCompetency	writeStandards.py	/^from baxterSlate import Skill, Competency,
 SyncStandards	writeStandards.py	/^def SyncStandards(session):$/;"	f
 URL	writeStandards.py	/^from sqlalchemy.engine.url import URL$/;"	i
 User	sqlAlchemyTest.py	/^class User(Base):$/;"	c
+__init__	baxterSlate.py	/^  def __init__(self):$/;"	m	class:StudentCompetency
 __init__	csvKey.py	/^  def __init__(self, *keys):$/;"	m	class:CsvKey
 __init__	demoImporter.py	/^  def __init__(self, compsByBaxterName, session):$/;"	m	class:DemoImporter
 __init__	skillImporter.py	/^  def __init__(self, compIndex, skillIndex, compsByCode, skillsByCode, session, config):$/;"	m	class:SkillImporter
@@ -97,6 +98,7 @@ code	baxterSlate.py	/^  code = Column(String)$/;"	v	class:Skill
 comments	baxterSlate.py	/^  comments = Column(String)$/;"	v	class:Demonstration
 competencies	skillImporter.py	/^  competencies = []$/;"	v	class:SkillImporter
 competencyID	baxterSlate.py	/^  competencyID = Column(Integer)$/;"	v	class:Skill
+competencyID	baxterSlate.py	/^  competencyID = Column(Integer)$/;"	v	class:StudentCompetency
 computeParams	writeStudents.py	/^	def computeParams(self):$/;"	m	class:Student
 config	sqlAlchemyTest.py	/^  config = json.load(configFile)$/;"	v
 config	sqlAlchemyTest.py	/^config = {}$/;"	v
@@ -141,6 +143,7 @@ descriptor	baxterSlate.py	/^  descriptor = Column(String)$/;"	v	class:Competency
 descriptor	baxterSlate.py	/^  descriptor = Column(String)$/;"	v	class:Skill
 engine	sqlAlchemyTest.py	/^engine = create_engine('sqlite:\/\/\/memory:', echo=True)$/;"	v
 engine	writeStandards.py	/^engine = create_engine(url, echo=True)$/;"	v
+enrollStudent	demoImporter.py	/^  def enrollStudent(self, student, competency):$/;"	m	class:DemoImporter
 enteredVia	baxterSlate.py	/^  enteredVia = Column(String)$/;"	v	class:StudentCompetency
 experienceType	baxterSlate.py	/^  experienceType = Column(String)$/;"	v	class:Demonstration
 firstName	baxterSlate.py	/^  firstName = Column(String)$/;"	v	class:Student

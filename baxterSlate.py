@@ -38,17 +38,20 @@ class StudentCompetency(Base):
   created = Column(DateTime)
   creatorID = Column(Integer)
   studentID = Column(Integer)
+  competencyID = Column(Integer)
   level = Column(Integer)
   enteredVia = Column(String)
 
-
-  def readDict(self, data):
+  def __init__(self):
     self._class = 'Slate\CBL\StudentCompetency'
     self.creatorID = 1
+    self.enteredVia = "enrollment"
+
+
+  def readDict(self, data):
     self.studentID = self.getId(data["StudentNumber"])
     self.competencyID = data["CompetencyID"]
     self.level = levelLut[int(data["level"])]
-    self.enteredVia = "enrollment"
 
 
 class Student(Base):
