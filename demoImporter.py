@@ -1,6 +1,7 @@
-from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill
+from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency
 import datetime, csv, re
 
+MAX_RECORDS = 100
 termMonthLut = {
   "T1" : "08",
   "T2" : "12",
@@ -14,10 +15,16 @@ class DemoImporter:
 
     self.unfound = {}
 
+    self.competenciesByID = {}
+    comps = self.session.query(Competency).all()
+    for comp in comps:
+      print comp.id
+      self.competenciesByID[comp.id] = comp
     self.studentsByNumber, self.studentsByID = self.GetStudentIndicies(session.query(Student).all())
     self.demoSkillsByID = self.GetDemoSkills(session.query(DemonstrationSkill).all())
     self.skillsByID, self.skillsByCompID = self.GetSkillIndices(session.query(Skill).all())
     self.demosByHash = self.GetDemosByHash(self.session.query(Demonstration).all())
+    self.studentCompetencies = self.session.query(StudentCompetency).all()
 
   def readDemos(self, targets):
     unfound = self.unfound
@@ -35,7 +42,7 @@ class DemoImporter:
     sortedEntries = sorted(entries, key=lambda k: datetime.datetime.strptime(k['Date'], '%m/%d/%Y'))
 
     changedDemos = []
-    sl = sortedEntries[0:100]
+    sl = sortedEntries[0:MAX_RECORDS]
     for entry in sl:
       print ",".join(entry.keys())
       print ",".join(entry.values())
@@ -71,15 +78,29 @@ class DemoImporter:
     skillDatas = demo.skillDatas
     for skillData in skillDatas:
       for skill in skillData["skills"]:
+        self.checkCompetency(demo, skill)
         if skill.id not in recordedIDs:
-          demoSkill = DemonstrationSkill()
-          demoSkill.init()
-          demoSkill.targetLevel = skillData["level"]
-          demoSkill.demonstratedLevel = skillData["level"]
-          demoSkill.skillID = skill.id
-          demoSkill.demonstrationID = demo.id
-          print demo.context + " " + skill.descriptor
-          #session.add(demoSkill)
+          demoSkill = self.makeNewDemoSkill(demo, skill, skillData)
+          session.add(demoSkill)
+
+  def makeNewDemoSkill(self, demo, skill, skillData):
+    demoSkill = DemonstrationSkill()
+    demoSkill.init()
+    demoSkill.targetLevel = skillData["level"]
+    demoSkill.demonstratedLevel = skillData["level"]
+    demoSkill.skillID = skill.id
+    demoSkill.demonstrationID = demo.id
+    print demo.context + " " + skill.descriptor
+    return demoSkill
+
+  def checkCompetency(self, demo, skill):
+    student = self.studentsByID[demo.studentID]
+    competency = self.competenciesByID[skill.competencyID]
+    competencyRecords = [sc for sc in self.studentCompetencies if sc.studentID == student.id and sc.competencyID == competency.id]
+    if len(competencyRecords) < 1:
+      print "STUDENT NOT ENROLLED: " + student.firstName + " " + student.lastName + " " + competency.descriptor
+    else:
+      print  "STUDENT ENROLLED!: " + student.firstName + " " + student.lastName + " " + competency.descriptor + " " + str(competencyRecords[0].level)
 
 
   def readDemo(self, info):
@@ -108,8 +129,6 @@ class DemoImporter:
     print "adding demo " + demo.context + " " + info['Score']
     demo.addSkillDatas(compSkills, info['Score'])
     return demo, newDemo
-
-
 
   def getDemo(self, info, student):
     myDate = info['Date']

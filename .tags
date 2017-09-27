@@ -10,6 +10,7 @@ Column	baxterSlate.py	/^from sqlalchemy import Column, Integer, String, DateTime
 Column	sqlAlchemyTest.py	/^from sqlalchemy import Column, Integer, String$/;"	i
 Column	writeStandards.py	/^from sqlalchemy import Column, Integer, String, DateTime$/;"	i
 Competency	baxterSlate.py	/^class Competency(Base):$/;"	c
+Competency	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency$/;"	i
 Competency	writeStandards.py	/^from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration$/;"	i
 CsvKey	csvKey.py	/^class CsvKey:$/;"	c
 CsvKey	writeStudents.py	/^from csvKey import CsvKey$/;"	i
@@ -18,11 +19,11 @@ DateTime	writeStandards.py	/^from sqlalchemy import Column, Integer, String, Dat
 DemoImporter	demoImporter.py	/^class DemoImporter:$/;"	c
 DemoImporter	writeStandards.py	/^from demoImporter import DemoImporter$/;"	i
 Demonstration	baxterSlate.py	/^class Demonstration(Base):$/;"	c
-Demonstration	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill$/;"	i
+Demonstration	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency$/;"	i
 Demonstration	skillImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration$/;"	i
 Demonstration	writeStandards.py	/^from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration$/;"	i
 DemonstrationSkill	baxterSlate.py	/^class DemonstrationSkill(Base):$/;"	c
-DemonstrationSkill	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill$/;"	i
+DemonstrationSkill	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency$/;"	i
 DemonstrationSkill	skillImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration$/;"	i
 DemonstrationSkill	writeStandards.py	/^from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration$/;"	i
 FIRST_NAME_INDEX	writeStudents.py	/^FIRST_NAME_INDEX = 2$/;"	v
@@ -37,13 +38,14 @@ Integer	writeStandards.py	/^from sqlalchemy import Column, Integer, String, Date
 IsCompetency	baxterSlate.py	/^def IsCompetency(data):$/;"	f
 IsCompetency	skillImporter.py	/^def IsCompetency(data):$/;"	f
 LAST_NAME_INDEX	writeStudents.py	/^LAST_NAME_INDEX = 3$/;"	v
+MAX_RECORDS	demoImporter.py	/^MAX_RECORDS = 100$/;"	v
 MIDDLE_NAME_INDEX	writeStudents.py	/^MIDDLE_NAME_INDEX = 4$/;"	v
 Main	writeStandards.py	/^def Main():$/;"	f
 Session	sqlAlchemyTest.py	/^Session = sessionmaker(bind=engine)$/;"	v
 Session	writeStandards.py	/^Session = sessionmaker()$/;"	v
 ShiftDemos	writeStandards.py	/^def ShiftDemos(session):$/;"	f
 Skill	baxterSlate.py	/^class Skill(Base):$/;"	c
-Skill	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill$/;"	i
+Skill	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency$/;"	i
 Skill	writeStandards.py	/^from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration$/;"	i
 SkillImporter	skillImporter.py	/^class SkillImporter:$/;"	c
 SkillImporter	writeStandards.py	/^from skillImporter import SkillImporter$/;"	i
@@ -51,11 +53,12 @@ String	baxterSlate.py	/^from sqlalchemy import Column, Integer, String, DateTime
 String	sqlAlchemyTest.py	/^from sqlalchemy import Column, Integer, String$/;"	i
 String	writeStandards.py	/^from sqlalchemy import Column, Integer, String, DateTime$/;"	i
 Student	baxterSlate.py	/^class Student(Base):$/;"	c
-Student	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill$/;"	i
+Student	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency$/;"	i
 Student	skillImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration$/;"	i
 Student	writeStandards.py	/^from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration$/;"	i
 Student	writeStudents.py	/^class Student:$/;"	c
 StudentCompetency	baxterSlate.py	/^class StudentCompetency(Base):$/;"	c
+StudentCompetency	demoImporter.py	/^from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency$/;"	i
 StudentCompetency	writeStandards.py	/^from baxterSlate import Skill, Competency, DemonstrationSkill, Student, StudentCompetency, Demonstration$/;"	i
 SyncStandards	writeStandards.py	/^def SyncStandards(session):$/;"	f
 URL	writeStandards.py	/^from sqlalchemy.engine.url import URL$/;"	i
@@ -88,6 +91,7 @@ addDemoSkills	demoImporter.py	/^  def addDemoSkills(self, demo, session):$/;"	m	
 addSkillDatas	baxterSlate.py	/^  def addSkillDatas(self, skills, level):$/;"	m	class:Demonstration
 artifactURL	baxterSlate.py	/^  artifactURL = Column(String)$/;"	v	class:Demonstration
 birthdate	baxterSlate.py	/^  birthdate = Column(DateTime)$/;"	v	class:Student
+checkCompetency	demoImporter.py	/^  def checkCompetency(self, demo, skill):$/;"	m	class:DemoImporter
 code	baxterSlate.py	/^  code = Column(String)$/;"	v	class:Competency
 code	baxterSlate.py	/^  code = Column(String)$/;"	v	class:Skill
 comments	baxterSlate.py	/^  comments = Column(String)$/;"	v	class:Demonstration
@@ -172,6 +176,7 @@ levelLut	baxterSlate.py	/^levelLut = {$/;"	v
 levelLut	writeStandards.py	/^levelLut = {$/;"	v
 loadFiles	skillImporter.py	/^  def loadFiles(self):$/;"	m	class:SkillImporter
 loadUrls	skillImporter.py	/^  def loadUrls(self):$/;"	m	class:SkillImporter
+makeNewDemoSkill	demoImporter.py	/^  def makeNewDemoSkill(self, demo, skill, skillData):$/;"	m	class:DemoImporter
 merge	writeStudents.py	/^	def merge(self, target):$/;"	m	class:Student
 middleName	baxterSlate.py	/^  middleName = Column(String)$/;"	v	class:Student
 modified	baxterSlate.py	/^  modified = Column(DateTime)$/;"	v	class:Competency
