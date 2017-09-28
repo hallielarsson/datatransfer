@@ -37,6 +37,7 @@ class StudentCompetency(Base):
   _class = Column('class', String)
   created = Column(DateTime)
   creatorID = Column(Integer)
+  #demonstrated = Column(DateTime)
   studentID = Column(Integer)
   competencyID = Column(Integer)
   level = Column(Integer)
@@ -45,6 +46,7 @@ class StudentCompetency(Base):
   def __init__(self):
     self._class = 'Slate\CBL\StudentCompetency'
     self.creatorID = 1
+    self.modifierID = 1
     self.enteredVia = "enrollment"
 
 

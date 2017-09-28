@@ -77,11 +77,17 @@ class DemoImporter:
 
     skillDatas = demo.skillDatas
     for skillData in skillDatas:
-      for skill in skillData["skills"]:
-        self.checkCompetency(demo, skill)
+      skills = skillData["skills"]
+      for skill in skills:
         if skill.id not in recordedIDs:
           demoSkill = self.makeNewDemoSkill(demo, skill, skillData)
           session.add(demoSkill)
+      competency = self.competenciesByID[skills[0].competencyID]
+      currentLevel = self.checkCompetency(demo, competency)
+      level = skillData["level"]
+      if level > currentLevel:
+        self.graduateStudent(demo, competency, level)
+
 
   def makeNewDemoSkill(self, demo, skill, skillData):
     demoSkill = DemonstrationSkill()
@@ -93,16 +99,18 @@ class DemoImporter:
     print demo.context + " " + skill.descriptor
     return demoSkill
 
-  def checkCompetency(self, demo, skill):
+  def checkCompetency(self, demo, competency):
     student = self.studentsByID[demo.studentID]
-    competency = self.competenciesByID[skill.competencyID]
     competencyRecords = [sc for sc in self.studentCompetencies if sc.studentID == student.id and sc.competencyID == competency.id]
     if len(competencyRecords) < 1:
-      print "STUDENT NOT ENROLLED: " + student.firstName + " " + student.lastName + " " + competency.descriptor
       self.enrollStudent(student, competency)
+      return 1
     else:
-      print  "STUDENT ENROLLED! " + student.firstName + " " + student.lastName + " " + competency.descriptor + " " + str(competencyRecords[0].level)
-
+      level = 0
+      for record in competencyRecords:
+        if record.level > level:
+          level = record.level
+      return level
 
   def enrollStudent(self, student, competency):
     enrollment = StudentCompetency()
@@ -113,6 +121,20 @@ class DemoImporter:
     self.session.add(enrollment)
     #self.session.flush()
     print "ENROLLED " + student.firstName + " " + student.lastName + " " + competency.descriptor + " " + str(competency.id) + " " + str(enrollment.level)
+    self.studentCompetencies.append(enrollment)
+
+  def graduateStudent(self, demo, competency, level):
+    student = self.studentsByID[demo.studentID]
+    enrollment = StudentCompetency()
+    enrollment.studentID = student.id
+    assert(competency.id != None)
+    enrollment.competencyID = competency.id
+    enrollment.level = level
+    #enrollment.demonstrated = date
+    enrollment.enteredVia = 'graduation'
+    self.session.add(enrollment)
+    #self.session.flush()
+    print "GRADUATED " + student.firstName + " " + student.lastName + " " + competency.descriptor + " " + str(competency.id) + " " + str(enrollment.level)
     self.studentCompetencies.append(enrollment)
 
   def readDemo(self, info):
@@ -187,7 +209,10 @@ class DemoImporter:
     return demosByHash
 
   def GetDemoHash(self, demo, student):
-    return (demo.demonstrated.strftime("%m/%d/%Y")) + str(student.studentNumber) + demo.context
+    context = demo.context
+    if demo.context == None:
+      context = "NULL"
+    return (demo.demonstrated.strftime("%m/%d/%Y")) + str(student.studentNumber) + context
 
   def GetDemoSkills(self, demoSkills):
     demoSkillsByDemoID = {}

@@ -92,7 +92,7 @@ addDemoSkills	demoImporter.py	/^  def addDemoSkills(self, demo, session):$/;"	m	
 addSkillDatas	baxterSlate.py	/^  def addSkillDatas(self, skills, level):$/;"	m	class:Demonstration
 artifactURL	baxterSlate.py	/^  artifactURL = Column(String)$/;"	v	class:Demonstration
 birthdate	baxterSlate.py	/^  birthdate = Column(DateTime)$/;"	v	class:Student
-checkCompetency	demoImporter.py	/^  def checkCompetency(self, demo, skill):$/;"	m	class:DemoImporter
+checkCompetency	demoImporter.py	/^  def checkCompetency(self, demo, competency):$/;"	m	class:DemoImporter
 code	baxterSlate.py	/^  code = Column(String)$/;"	v	class:Competency
 code	baxterSlate.py	/^  code = Column(String)$/;"	v	class:Skill
 comments	baxterSlate.py	/^  comments = Column(String)$/;"	v	class:Demonstration
@@ -158,6 +158,7 @@ getKey	csvKey.py	/^  def getKey(self):$/;"	m	class:CsvKey
 getKeys	writeStudents.py	/^	def getKeys(self):$/;"	m	class:Student
 getSkill	skillImporter.py	/^  def getSkill(self, data):$/;"	m	class:SkillImporter
 getUsername	writeStudents.py	/^	def getUsername(self):$/;"	m	class:Student
+graduateStudent	demoImporter.py	/^  def graduateStudent(self, demo, competency, level):$/;"	m	class:DemoImporter
 graduationYear	baxterSlate.py	/^  graduationYear = Column(Integer)$/;"	v	class:Student
 id	baxterSlate.py	/^  id = Column(Integer, primary_key=True)$/;"	v	class:Competency
 id	baxterSlate.py	/^  id = Column(Integer, primary_key=True)$/;"	v	class:Demonstration
