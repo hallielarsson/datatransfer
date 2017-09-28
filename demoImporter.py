@@ -1,7 +1,7 @@
 from baxterSlate import Student, DemonstrationSkill, Demonstration, Skill, Competency, StudentCompetency
 import datetime, csv, re
 
-MAX_RECORDS = 100
+MAX_RECORDS = -1
 termMonthLut = {
   "T1" : "08",
   "T2" : "12",
@@ -42,7 +42,10 @@ class DemoImporter:
     sortedEntries = sorted(entries, key=lambda k: datetime.datetime.strptime(k['Date'], '%m/%d/%Y'))
 
     changedDemos = []
-    sl = sortedEntries[0:MAX_RECORDS]
+    if MAX_RECORDS > 0:
+      sl = sortedEntries[0:MAX_RECORDS]
+    else:
+      sl = sortedEntries
     for entry in sl:
       print ",".join(entry.keys())
       print ",".join(entry.values())
@@ -84,7 +87,7 @@ class DemoImporter:
           session.add(demoSkill)
       competency = self.competenciesByID[skills[0].competencyID]
       currentLevel = self.checkCompetency(demo, competency)
-      level = skillData["level"]
+      level = skillData["level"] + 1 #+1 because we will graduate to the NEXT level
       if level > currentLevel:
         self.graduateStudent(demo, competency, level)
 

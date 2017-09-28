@@ -38,7 +38,7 @@ Integer	writeStandards.py	/^from sqlalchemy import Column, Integer, String, Date
 IsCompetency	baxterSlate.py	/^def IsCompetency(data):$/;"	f
 IsCompetency	skillImporter.py	/^def IsCompetency(data):$/;"	f
 LAST_NAME_INDEX	writeStudents.py	/^LAST_NAME_INDEX = 3$/;"	v
-MAX_RECORDS	demoImporter.py	/^MAX_RECORDS = 100$/;"	v
+MAX_RECORDS	demoImporter.py	/^MAX_RECORDS = -1$/;"	v
 MIDDLE_NAME_INDEX	writeStudents.py	/^MIDDLE_NAME_INDEX = 4$/;"	v
 Main	writeStandards.py	/^def Main():$/;"	f
 Session	sqlAlchemyTest.py	/^Session = sessionmaker(bind=engine)$/;"	v
