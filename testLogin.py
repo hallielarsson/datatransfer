@@ -7,13 +7,27 @@ with open('config.json') as configFile:
 params = {'_LOGIN[username]' : config['username'],
  '_LOGIN[password]': config['password'], '_LOGIN[returnMethod]' : 'POST',
  '_LOGIN[format]' : 'application/json'}
-req = requests.post(config['url'] + "/people/json", data = params)
-print req.content
-out = req.json()
 
+headers={ 'Content-Type':'application/json' }
+req = requests.post(config['url'] + "/relationships?format=json", params = params, headers=headers)
 
 newdata = []
-for p in out["data"]:
-  if(p["LastName"] == "Larsson"):
-    p["LastName"] = "Larson"
-    print p
+i = 0
+
+def saveData(data):
+  for p in data:
+    print(p)
+    p["Notes"] = "test"
+    p["Label"] = "comrade"
+    send = {'data' : [p] }
+    req = requests.post(config['url'] + "/relationships/save?include=Label",
+      params= params,
+      data=json.dumps(send),
+      headers=headers,
+      )
+    print(req)
+    #newdata.append(p)
+
+saveData(req.json()["data"])
+
+#print json.dumps(newdata)
