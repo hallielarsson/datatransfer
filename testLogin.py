@@ -42,6 +42,13 @@ for cp in contactPoints:
   person = peopleById[cp['PersonID']]
   peopleByEmail[cp['Data']] = person
 
+
+def relationshipExists(idA, idB):
+  for rel in relationships:
+    if (idA == rel['PersonID'] and idB == rel['RelatedPersonID']) or (idB == rel['PersonID'] and idA == rel['RelatedPersonID']):
+      return True
+  return False
+
 for (email, person) in peopleByEmail.iteritems():
   print(email, person['FirstName'])
 
@@ -86,18 +93,22 @@ with open("data/parentwrite.csv", 'r') as parentData:
   for parent in parentReader:
     parentUsername = getUsername(parent['First Name'], parent['Last Name'])
     email = parent['Email']
-    personId = None
+    parentId = None
+    try:
+      studentId = studentsByNumber[parent['Student ID']]['ID']
+    except KeyError as e:
+      print ("!!!" , e)
     if email == None:
       continue
     if email in peopleByEmail.keys():
       person = peopleByEmail[email]
       print(email, person)
-      personId = person['ID']
+      parentId = person['ID']
     elif parentUsername in peopleByUsername.keys():
       person = peopleByUsername[parentUsername]
-      personId = person['ID']
+      parentId = person['ID']
       if person['PrimaryEmailID'] == None:
-        createEmailEntry(personId, email)
+        createEmailEntry(parentId, email)
     else:
       saveParent = {
         'FirstName' : parent['First Name'],
@@ -117,6 +128,26 @@ with open("data/parentwrite.csv", 'r') as parentData:
       parentId = req.json()['data'][0]['ID']
       createEmailEntry(parentId, email)
       #saveParents.append(saveParent)
+
+    if not relationshipExists(parentId, studentId):
+      rel = {
+        'Class' : 'Emergence\People\GuardianRelationship',
+        'PersonID': parentId,
+        'Label':'guardian',
+        'RelatedPersonID' : studentId,
+        'InverseRelationship' : {
+          'Class' : 'Emergence\People\Relationship',
+          'PersonID': studentId,
+          'Label':'child',
+          'RelatedPersonID' : parentId,
+        }
+      }
+      req = requests.post(
+        config['url'] + "/relationships/save?format=json",
+        params=getBaseParams(),
+        headers=headers,
+        data=json.dumps({ 'data' : [rel] })
+      )
 
 
 
