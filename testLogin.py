@@ -131,14 +131,14 @@ with open("data/parentwrite.csv", 'r') as parentData:
 
     if not relationshipExists(parentId, studentId):
       rel = {
-        'Class' : 'Emergence\People\GuardianRelationship',
+        'Class' : 'Emergence\People\Relationship',
         'PersonID': parentId,
-        'Label':'guardian',
+        'Label':'child',
         'RelatedPersonID' : studentId,
         'InverseRelationship' : {
-          'Class' : 'Emergence\People\Relationship',
+          'Class' : 'Emergence\People\GuardianRelationship',
           'PersonID': studentId,
-          'Label':'child',
+          'Label':'guardian',
           'RelatedPersonID' : parentId,
         }
       }
